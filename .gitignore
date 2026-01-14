@@ -1,0 +1,39 @@
+# Docker 相关
+docker/mysql/data/
+docker/mysql/logs/
+docker/redis/data/
+docker/redis/logs/
+
+# 环境变量文件
+.env
+
+# 日志文件
+*.log
+
+# 数据库备份文件
+backup_*.sql
+backup_*.rdb
+
+# IDE 配置
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS 文件
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.bak
+*.cache
+
+*.gz
+*.key
+*.pem
+*.tar
+
+/node_modules
+/dist

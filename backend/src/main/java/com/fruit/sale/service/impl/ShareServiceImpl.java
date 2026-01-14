@@ -1,0 +1,130 @@
+package com.fruit.sale.service.impl;
+
+import cn.hutool.core.util.IdUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fruit.sale.dto.ShareCreateDTO;
+import com.fruit.sale.entity.ProductInfo;
+import com.fruit.sale.entity.ShareRecord;
+import com.fruit.sale.entity.UserInfo;
+import com.fruit.sale.enums.UserTypeEnum;
+import com.fruit.sale.exception.BusinessException;
+import com.fruit.sale.mapper.ProductInfoMapper;
+import com.fruit.sale.mapper.ShareRecordMapper;
+import com.fruit.sale.mapper.UserInfoMapper;
+import com.fruit.sale.service.IShareService;
+import com.fruit.sale.vo.ShareLinkVO;
+import com.fruit.sale.vo.ShareRecordVO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 分享服务实现
+ *
+ * @author fruit-sale
+ * @since 2024-09-30
+ */
+@Slf4j
+@Service
+public class ShareServiceImpl implements IShareService {
+
+    @Autowired
+    private ShareRecordMapper shareRecordMapper;
+
+    @Autowired
+    private ProductInfoMapper productInfoMapper;
+
+    @Autowired
+    private UserInfoMapper userInfoMapper;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ShareLinkVO createShare(Long userId, ShareCreateDTO shareCreateDTO) {
+        UserInfo user = userInfoMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 只有星享会员和代理可以分享
+        boolean isVip = user.getVipExpireTime() != null && user.getVipExpireTime().isAfter(LocalDateTime.now());
+        boolean isAgent = user.getAgentLevel() != null && user.getAgentLevel() > 0;
+
+        if (!isVip && !isAgent) {
+            throw new BusinessException("仅星享会员和代理可以使用分享功能");
+        }
+
+        // 验证商品
+        ProductInfo product = productInfoMapper.selectById(shareCreateDTO.getProductId());
+        if (product == null) {
+            throw new BusinessException("商品不存在");
+        }
+
+        if (product.getStatus() == 0) {
+            throw new BusinessException("商品已下架");
+        }
+
+        // 创建分享记录
+        ShareRecord record = new ShareRecord();
+        record.setSharerId(userId);
+        record.setProductId(shareCreateDTO.getProductId());
+        record.setIsDeal(0);
+        shareRecordMapper.insert(record);
+
+        // 生成分享链接（这里简化处理，实际应该生成小程序二维码或短链接）
+        String shareLink = String.format("https://miniapp.example.com/product/%d?shareId=%d&sharerId=%d",
+                product.getId(), record.getId(), userId);
+
+        ShareLinkVO vo = new ShareLinkVO();
+        vo.setShareId(record.getId());
+        vo.setShareLink(shareLink);
+        vo.setProductId(product.getId());
+        vo.setProductName(product.getProductName());
+        vo.setProductImage(product.getMainImage());
+
+        return vo;
+    }
+
+    @Override
+    public List<ShareRecordVO> getShareRecords(Long userId) {
+        List<ShareRecord> records = shareRecordMapper.selectList(
+                new LambdaQueryWrapper<ShareRecord>()
+                        .eq(ShareRecord::getSharerId, userId)
+                        .orderByDesc(ShareRecord::getCreateTime)
+        );
+
+        List<ShareRecordVO> result = new ArrayList<>();
+        for (ShareRecord record : records) {
+            ProductInfo product = productInfoMapper.selectById(record.getProductId());
+            if (product != null) {
+                ShareRecordVO vo = new ShareRecordVO();
+                vo.setId(record.getId());
+                vo.setProductId(product.getId());
+                vo.setProductName(product.getProductName());
+                vo.setProductImage(product.getMainImage());
+                vo.setShareLink(String.format("https://miniapp.example.com/product/%d?shareId=%d&sharerId=%d",
+                        product.getId(), record.getId(), userId));
+                vo.setIsConverted(record.getIsDeal());
+                vo.setRewardIntegral(record.getRewardIntegral());
+                vo.setIsRewarded(record.getIsDeal());
+                vo.setCreateTime(record.getCreateTime());
+
+                // 如果有访客信息，补充访客昵称
+                if (record.getVisitorId() != null) {
+                    UserInfo visitor = userInfoMapper.selectById(record.getVisitorId());
+                    if (visitor != null) {
+                        vo.setConvertedUserNickname(visitor.getNickname());
+                    }
+                }
+
+                result.add(vo);
+            }
+        }
+
+        return result;
+    }
+}

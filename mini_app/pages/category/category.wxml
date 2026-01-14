@@ -1,0 +1,88 @@
+<!--pages/category/category.wxml-->
+<view class="container">
+  <!-- 顶部标题 -->
+  <!-- <view class="header" style="background: {{themeConfig.primary}};">
+    <text class="header-title">商品分类</text>
+  </view> -->
+
+  <view class="category-wrapper">
+    <!-- 左侧分类列表 -->
+    <scroll-view class="category-list" scroll-y>
+      <view
+        wx:for="{{categories}}"
+        wx:key="id"
+        class="category-item {{currentCategoryId === item.id ? 'active' : ''}}"
+        bindtap="onCategoryTap"
+        data-id="{{item.id}}"
+      >
+        <text class="category-name" style="{{currentCategoryId === item.id ? 'color: ' + themeConfig.primary : ''}}">{{item.categoryName}}</text>
+        <view wx:if="{{currentCategoryId === item.id}}" class="active-indicator" style="background: {{themeConfig.primary}};"></view>
+      </view>
+    </scroll-view>
+
+    <!-- 右侧商品列表 -->
+    <view class="product-wrapper">
+      <!-- 分类标题和排序 -->
+      <view class="product-header">
+        <text class="category-title">{{currentCategoryName}}</text>
+        <view class="sort-selector" bindtap="showSortOptions">
+          <text class="sort-text">{{sortText}}</text>
+          <text class="sort-arrow">∨</text>
+        </view>
+      </view>
+
+      <!-- 商品列表 -->
+      <scroll-view class="product-list" scroll-y>
+        <view
+          wx:for="{{products}}"
+          wx:key="id"
+          class="product-card"
+          bindtap="goToProductDetail"
+          data-id="{{item.id}}"
+        >
+          <!-- 商品图片 -->
+          <image class="product-img" src="{{item.mainImage}}" mode="aspectFill" lazy-load></image>
+
+          <!-- 商品信息 -->
+          <view class="product-content">
+            <!-- 商品名称 -->
+            <text class="product-title">{{item.productName}}</text>
+
+            <!-- 规格描述 -->
+            <text class="product-spec" wx:if="{{item.description}}">{{item.description}}</text>
+
+            <!-- 价格行 -->
+            <view class="price-line">
+              <!-- VIP会员显示VIP价 -->
+              <view wx:if="{{item.vipPrice && userInfo && userInfo.userType === 2}}" class="price-group">
+                <text class="vip-price" style="color: {{themeConfig.primary}};">¥{{item.vipPrice}}</text>
+                <text class="original-price">¥{{item.price}}</text>
+                <view class="vip-tag" style="background: {{themeConfig.secondary}};">
+                  <text class="vip-tag-text">VIP</text>
+                </view>
+              </view>
+              <!-- 普通会员显示原价 -->
+              <view wx:else class="price-group">
+                <text class="product-price" style="color: {{themeConfig.primary}};">¥{{item.price}}</text>
+              </view>
+            </view>
+
+            <!-- 销量 -->
+            <text class="sales-text">已售 {{item.salesCount || 0}} 件</text>
+          </view>
+
+          <!-- 加购物车按钮 -->
+          <view class="add-cart-btn" catchtap="addToCart" data-id="{{item.id}}" data-name="{{item.productName}}" style="background: {{themeConfig.primary}};">
+            <text class="btn-text">+</text>
+          </view>
+        </view>
+
+        <!-- 空状态 -->
+        <view wx:if="{{products.length === 0}}" class="empty-state">
+          <text class="empty-icon">📦</text>
+          <text class="empty-text">该分类暂无商品</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

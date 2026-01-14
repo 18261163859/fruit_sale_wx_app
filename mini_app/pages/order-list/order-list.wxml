@@ -1,0 +1,134 @@
+<!--pages/order-list/order-list.wxml-->
+<view class="container">
+  <!-- Tab栏 -->
+  <view class="tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="index"
+      class="tab-item {{activeTab === index ? 'active' : ''}}"
+      bindtap="switchTab"
+      data-index="{{index}}"
+    >
+      <text class="tab-name">{{item.name}}</text>
+    </view>
+  </view>
+
+  <!-- 订单列表 -->
+  <scroll-view class="order-list" scroll-y enable-back-to-top refresher-enabled refresher-triggered="{{loading}}" bindrefresherrefresh="onPullDownRefresh">
+    <view wx:if="{{orders.length > 0}}">
+      <view
+        wx:for="{{orders}}"
+        wx:key="id"
+        class="order-card"
+        bindtap="goToDetail"
+        data-id="{{item.id}}"
+      >
+        <!-- 订单头部 -->
+        <view class="order-header">
+          <view class="header-left">
+            <text class="order-no">订单号: {{item.orderNo}}</text>
+            <text class="order-time">{{item.createTime}}</text>
+          </view>
+          <view class="order-status-tag {{item.statusClass}}">
+            {{item.statusText}}
+          </view>
+        </view>
+
+        <!-- 商品列表 -->
+        <view class="products-section">
+          <view
+            wx:for="{{item.items}}"
+            wx:for-item="product"
+            wx:key="id"
+            class="product-item"
+          >
+            <image class="product-image" src="{{product.productImage}}" mode="aspectFill" />
+            <view class="product-info">
+              <text class="product-name">{{product.productName}}</text>
+              <text class="product-spec" wx:if="{{product.specName}}">{{product.specName}}</text>
+              <view class="price-row">
+                <text class="price">¥{{product.productPrice}}</text>
+                <text class="quantity">x{{product.quantity}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 订单底部 -->
+        <view class="order-footer">
+          <view class="footer-content">
+            <view class="amount-section">
+              <text class="items-count">共{{item.totalQuantity}}件商品</text>
+              <view class="amount-info">
+                <text class="amount-label">实付</text>
+                <text class="amount-value">¥{{item.payAmount || item.actualAmount || item.totalAmount}}</text>
+              </view>
+            </view>
+
+            <view class="action-buttons">
+            <!-- 待付款状态 -->
+            <block wx:if="{{item.orderStatus === 0}}">
+              <button
+                class="btn cancel-btn"
+                catchtap="cancelOrder"
+                data-id="{{item.id}}"
+              >
+                取消订单
+              </button>
+              <button
+                class="btn pay-btn"
+                catchtap="payOrder"
+                data-id="{{item.id}}"
+              >
+                去支付
+              </button>
+            </block>
+
+            <!-- 待发货状态 -->
+            <block wx:if="{{item.orderStatus === 1}}">
+              <button class="btn detail-btn" catchtap="goToDetail" data-id="{{item.id}}">
+                查看详情
+              </button>
+            </block>
+
+            <!-- 待收货状态 -->
+            <block wx:if="{{item.orderStatus === 2}}">
+              <button
+                class="btn confirm-btn"
+                catchtap="confirmReceipt"
+                data-id="{{item.id}}"
+              >
+                确认收货
+              </button>
+            </block>
+
+            <!-- 已完成状态 -->
+            <block wx:if="{{item.orderStatus === 3}}">
+              <button class="btn detail-btn" catchtap="goToDetail" data-id="{{item.id}}">
+                查看详情
+              </button>
+            </block>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:else class="empty-state">
+      <view class="empty-icon">📦</view>
+      <text class="empty-text">暂无订单</text>
+      <text class="empty-tip">快去选购心仪的水果吧~</text>
+    </view>
+
+    <!-- 加载状态 -->
+    <view wx:if="{{loading}}" class="loading-state">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 没有更多 -->
+    <view wx:if="{{!hasMore && orders.length > 0}}" class="no-more">
+      <text>没有更多了</text>
+    </view>
+  </scroll-view>
+</view>

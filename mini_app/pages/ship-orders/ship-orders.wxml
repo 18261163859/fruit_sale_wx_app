@@ -1,0 +1,82 @@
+<!--pages/ship-orders/ship-orders.wxml-->
+<view class="container">
+  <!-- 订单列表 -->
+  <scroll-view class="order-list" scroll-y enable-back-to-top refresher-enabled refresher-triggered="{{loading}}" bindrefresherrefresh="onPullDownRefresh">
+    <view wx:if="{{orders.length > 0}}">
+      <view
+        wx:for="{{orders}}"
+        wx:key="id"
+        class="order-card"
+        bindtap="goToShipDetail"
+        data-id="{{item.id}}"
+      >
+        <!-- 订单头部 -->
+        <view class="order-header">
+          <text class="order-no">订单号: {{item.orderNo}}</text>
+          <text class="order-time">{{item.createTime}}</text>
+        </view>
+
+        <!-- 收货人信息 -->
+        <view class="receiver-section">
+          <view class="receiver-icon">📍</view>
+          <view class="receiver-info">
+            <view class="receiver-row">
+              <text class="receiver-name">{{item.receiverName}}</text>
+              <text class="receiver-phone">{{item.receiverPhone}}</text>
+            </view>
+            <view class="receiver-address">
+              {{item.receiverProvince}} {{item.receiverCity}} {{item.receiverDistrict}} {{item.receiverAddress}}
+            </view>
+          </view>
+        </view>
+
+        <!-- 商品列表 -->
+        <view class="products-section">
+          <view
+            wx:for="{{item.items}}"
+            wx:for-item="product"
+            wx:key="id"
+            class="product-item"
+          >
+            <image class="product-image" src="{{product.productImage}}" mode="aspectFill" />
+            <view class="product-info">
+              <text class="product-name">{{product.productName}}</text>
+              <text class="product-spec" wx:if="{{product.specName}}">{{product.specName}}</text>
+              <view class="quantity-row">
+                <text class="price">¥{{product.productPrice}}</text>
+                <text class="quantity">x{{product.quantity}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 订单底部 -->
+        <view class="order-footer">
+          <view class="amount-section">
+            <text class="amount-label">订单金额:</text>
+            <text class="amount-value">¥{{item.actualAmount}}</text>
+          </view>
+          <button class="ship-btn" catchtap="goToShipDetail" data-id="{{item.id}}">
+            去发货
+          </button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:else class="empty-state">
+      <image class="empty-icon" src="/images/empty-order.png" mode="aspectFit" />
+      <text class="empty-text">暂无待发货订单</text>
+    </view>
+
+    <!-- 加载状态 -->
+    <view wx:if="{{loading}}" class="loading-state">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 没有更多 -->
+    <view wx:if="{{!hasMore && orders.length > 0}}" class="no-more">
+      <text>没有更多了</text>
+    </view>
+  </scroll-view>
+</view>

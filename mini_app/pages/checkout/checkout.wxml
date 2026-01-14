@@ -1,0 +1,129 @@
+<!--pages/checkout/checkout.wxml-->
+<view class="container">
+  <!-- 收货地址 -->
+  <view class="address-section" bindtap="selectAddress">
+    <view wx:if="{{selectedAddress}}" class="address-content">
+      <view class="address-icon">📍</view>
+      <view class="address-info">
+        <view class="receiver-row">
+          <text class="receiver-name">{{selectedAddress.receiverName}}</text>
+          <text class="receiver-phone">{{selectedAddress.receiverPhone}}</text>
+        </view>
+        <view class="address-detail">
+          {{selectedAddress.province}} {{selectedAddress.city}} {{selectedAddress.district}} {{selectedAddress.detailAddress}}
+        </view>
+      </view>
+      <view class="arrow-icon">›</view>
+    </view>
+
+    <view wx:else class="no-address" bindtap="addAddress">
+      <view class="no-address-icon">+</view>
+      <text class="no-address-text">添加收货地址</text>
+    </view>
+  </view>
+
+  <!-- 商品列表 -->
+  <view class="products-section">
+    <view class="section-title">商品清单</view>
+    <view class="products-list">
+      <view
+        wx:for="{{products}}"
+        wx:key="productId"
+        class="product-item"
+      >
+        <image class="product-image" src="{{item.productImage}}" mode="aspectFill" />
+        <view class="product-info">
+          <text class="product-name">{{item.productName}}</text>
+          <text class="product-spec" wx:if="{{item.specName}}">{{item.specName}}</text>
+          <view class="price-quantity-row">
+            <view class="price-group">
+              <text class="price">¥{{item.price}}</text>
+              <text wx:if="{{item.originalPrice > item.price}}" class="original-price">¥{{item.originalPrice}}</text>
+            </view>
+            <text class="quantity">x{{item.quantity}}</text>
+          </view>
+          <view wx:if="{{item.stock < 10}}" class="stock-tip">仅剩{{item.stock}}件</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 积分抵扣 -->
+  <view class="integral-section">
+    <view class="integral-row">
+      <text class="label">使用积分</text>
+      <view class="integral-input-wrapper">
+        <input
+          class="integral-input"
+          type="number"
+          placeholder="0"
+          value="{{useIntegral}}"
+          bindinput="onIntegralInput"
+        />
+        <text class="integral-unit">积分</text>
+        <text class="use-all-btn" bindtap="useAllIntegral">全部抵扣</text>
+      </view>
+    </view>
+    <view class="integral-tip">
+      <text>可用积分: {{userIntegral}} | 最多抵扣: {{maxIntegralDeduct}} (¥{{maxDeductAmountText}})</text>
+    </view>
+  </view>
+
+  <!-- 订单备注 -->
+  <view class="remark-section">
+    <view class="remark-label">订单备注</view>
+    <textarea
+      class="remark-input"
+      placeholder="选填，如需要特别说明请在此填写"
+      maxlength="200"
+      value="{{remark}}"
+      bindinput="onRemarkInput"
+    />
+  </view>
+
+  <!-- 价格明细 -->
+  <view class="price-section">
+    <view class="price-row">
+      <text class="label">商品总额</text>
+      <text class="value">¥{{originalAmount}}</text>
+    </view>
+    <view wx:if="{{savedAmount > 0}}" class="price-row">
+      <text class="label">VIP优惠</text>
+      <text class="value saved">-¥{{savedAmount}}</text>
+    </view>
+    <view wx:if="{{integralDeductAmount > 0}}" class="price-row">
+      <text class="label">积分抵扣</text>
+      <text class="value deduct">-¥{{integralDeductAmount}}</text>
+    </view>
+    <view class="price-row">
+      <text class="label">运费</text>
+      <text wx:if="{{freightAmount > 0}}" class="value">¥{{freightAmount}}</text>
+      <text wx:else class="value free">免运费</text>
+    </view>
+    <view wx:if="{{totalAmount < freeFreightThreshold}}" class="freight-tip">
+      <text>再买 ¥{{remainingForFreeShipping}} 即可包邮</text>
+    </view>
+    <view class="price-row total">
+      <text class="label">实付金额</text>
+      <text class="value amount">¥{{actualAmount}}</text>
+    </view>
+  </view>
+
+  <!-- 底部提交按钮 -->
+  <view class="footer-bar">
+    <view class="total-info">
+      <view class="total-label-group">
+        <text class="total-label">合计:</text>
+        <text wx:if="{{savedAmount > 0 || integralDeductAmount > 0}}" class="original-total">¥{{originalAmount}}</text>
+      </view>
+      <text class="total-amount">¥{{actualAmount}}</text>
+    </view>
+    <button
+      class="submit-btn"
+      bindtap="submitOrder"
+      disabled="{{loading}}"
+    >
+      {{loading ? '提交中...' : '提交订单'}}
+    </button>
+  </view>
+</view>

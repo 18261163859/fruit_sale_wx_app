@@ -1,0 +1,45 @@
+<!--pages/login/login.wxml-->
+<view class="login-container">
+  <view class="login-header">
+    <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
+    <text class="app-name">高端云南水果</text>
+    <text class="slogan">品质生活，从这里开始</text>
+  </view>
+
+  <view class="login-content">
+    <view class="input-group">
+      <input
+        class="invite-input"
+        placeholder="请输入邀请码(可选)"
+        value="{{inviteCode}}"
+        bindinput="onInviteCodeInput"
+      />
+    </view>
+
+    <view class="input-group">
+      <input
+        class="phone-input"
+        type="number"
+        placeholder="请输入手机号(测试用)"
+        value="{{phone}}"
+        bindinput="onPhoneInput"
+        maxlength="11"
+      />
+    </view>
+
+    <button class="login-btn" open-type="getPhoneNumber" bindgetphonenumber="onWxLoginWithPhone">
+      微信授权登录
+    </button>
+
+    <button class="phone-login-btn" bindtap="onPhoneLogin">
+      手机号登录(测试)
+    </button>
+  </view>
+
+  <view class="login-footer">
+    <text class="tips">登录即表示同意</text>
+    <text class="link">《用户协议》</text>
+    <text class="tips">和</text>
+    <text class="link">《隐私政策》</text>
+  </view>
+</view>

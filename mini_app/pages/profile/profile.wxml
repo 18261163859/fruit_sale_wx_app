@@ -1,0 +1,238 @@
+<!--pages/profile/profile.wxml-->
+<view class="container">
+  <!-- 用户信息区域 -->
+  <view class="user-section">
+    <view class="user-header" data-theme="{{currentTheme}}">
+      <image wx:if="{{userInfo.avatarUrl}}" class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="avatar-placeholder">
+        <text class="avatar-icon">👤</text>
+      </view>
+
+      <view class="user-info">
+        <view class="user-name-row">
+          <text class="nickname">{{userInfo.nickname || '未登录'}}</text>
+
+          <!-- 会员徽章和代理徽章可以同时显示 -->
+          <!-- 会员徽章 -->
+          <view wx:if="{{isVip}}" class="type-badge vip-member">
+            <text class="badge-text">星享会员</text>
+          </view>
+
+          <!-- 代理徽章 -->
+          <view wx:if="{{userInfo.agentLevel === 2}}" class="type-badge agent-level-2">
+            <text class="badge-text">二级代理</text>
+          </view>
+          <view wx:elif="{{userInfo.agentLevel === 1}}" class="type-badge agent-level-1">
+            <text class="badge-text">一级代理</text>
+          </view>
+
+          <!-- 如果既不是会员也不是代理，显示普通会员 -->
+          <view wx:if="{{!isVip && !userInfo.agentLevel}}" class="type-badge normal-member">
+            <text class="badge-text">普通会员</text>
+          </view>
+        </view>
+        <text class="phone">{{userInfo.phone || ''}}</text>
+      </view>
+    </view>
+
+    <!-- 会员信息卡片 -->
+    <view wx:if="{{isVip}}" class="member-card vip-member">
+      <view class="member-info">
+        <text class="member-title">星享会员</text>
+      </view>
+      <view class="member-benefits">
+        <view class="benefit-item">
+          <text class="benefit-value">95折</text>
+          <text class="benefit-label">专享折扣</text>
+        </view>
+        <view class="benefit-divider"></view>
+        <view class="benefit-item">
+          <text class="benefit-value">{{userInfo.integralBalance || 0}}</text>
+          <text class="benefit-label">可用积分</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 非会员开通卡片 -->
+    <view wx:else class="member-card normal-user" bindtap="goToOpenVip">
+      <view class="member-info">
+        <text class="member-title">开通星享会员</text>
+        <text class="member-desc">95折优惠 + 专属服务</text>
+      </view>
+      <view class="open-btn">
+        <text>立即开通</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 订单统计 -->
+  <view class="order-section">
+    <view class="section-header">
+      <text class="section-title">我的订单</text>
+      <view class="view-all" bindtap="goToOrders">
+        <text>全部订单</text>
+        <text class="arrow">></text>
+      </view>
+    </view>
+
+    <view class="order-stats">
+      <view class="stat-item" bindtap="goToOrdersByStatus" data-status="0">
+        <view class="stat-icon-wrapper">
+          <text class="stat-icon">💳</text>
+          <view wx:if="{{orderStats.pendingPaymentCount > 0}}" class="stat-badge">{{orderStats.pendingPaymentCount}}</view>
+        </view>
+        <text class="stat-label">待付款</text>
+      </view>
+
+      <view class="stat-item" bindtap="goToOrdersByStatus" data-status="1">
+        <view class="stat-icon-wrapper">
+          <text class="stat-icon">📦</text>
+          <view wx:if="{{orderStats.pendingShipmentCount > 0}}" class="stat-badge">{{orderStats.pendingShipmentCount}}</view>
+        </view>
+        <text class="stat-label">待发货</text>
+      </view>
+
+      <view class="stat-item" bindtap="goToOrdersByStatus" data-status="2">
+        <view class="stat-icon-wrapper">
+          <text class="stat-icon">🚚</text>
+          <view wx:if="{{orderStats.shippedCount > 0}}" class="stat-badge">{{orderStats.shippedCount}}</view>
+        </view>
+        <text class="stat-label">待收货</text>
+      </view>
+
+      <!-- <view class="stat-item" bindtap="goToOrdersByStatus" data-status="3">
+        <view class="stat-icon-wrapper">
+          <text class="stat-icon">⭐</text>
+          <view wx:if="{{orderStats.pendingReviewCount > 0}}" class="stat-badge">{{orderStats.pendingReviewCount}}</view>
+        </view>
+        <text class="stat-label">待评价</text>
+      </view> -->
+    </view>
+  </view>
+
+  <!-- 代理信息 -->
+  <view wx:if="{{isAgent}}" class="agent-section">
+    <view class="agent-card" bindtap="goToAgent">
+      <view class="agent-header-row">
+        <text class="agent-level-badge">{{userInfo.agentLevel === 1 ? '一级代理' : '二级代理'}}</text>
+        <text class="arrow-white">></text>
+      </view>
+
+      <view class="agent-stats-row">
+        <view class="agent-stat-item">
+          <text class="agent-stat-value">¥{{agentStats.totalCommission || '0.00'}}</text>
+          <text class="agent-stat-label">累计收益</text>
+        </view>
+        <view class="agent-stat-divider"></view>
+        <view class="agent-stat-item">
+          <text class="agent-stat-value">{{agentStats.subAgentCount || 0}}</text>
+          <text class="agent-stat-label">下级代理</text>
+        </view>
+        <view class="agent-stat-divider"></view>
+        <view class="agent-stat-item">
+          <text class="agent-stat-value">{{agentStats.subMemberCount || 0}}</text>
+          <text class="agent-stat-label">下级会员</text>
+        </view>
+      </view>
+
+      <view class="agent-action-hint">
+        <text class="action-hint-text">查看详细数据</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-section">
+    <view class="menu-item" bindtap="goToAddresses">
+      <view class="menu-left">
+        <text class="menu-icon">📍</text>
+        <text class="menu-title">收货地址</text>
+      </view>
+      <text class="arrow">></text>
+    </view>
+
+    <view class="menu-item" bindtap="goToIntegral">
+      <view class="menu-left">
+        <text class="menu-icon">🎁</text>
+        <text class="menu-title">积分中心</text>
+      </view>
+      <view class="menu-right">
+        <text class="menu-value">{{userInfo.integralBalance || 0}}</text>
+        <text class="arrow">></text>
+      </view>
+    </view>
+
+    <!-- 绑定邀请码入口（未绑定时显示） -->
+    <view wx:if="{{!userInfo.inviterUserId}}" class="menu-item" bindtap="showBindInviteCodeDialog">
+      <view class="menu-left">
+        <text class="menu-icon">🔗</text>
+        <text class="menu-title">绑定邀请码</text>
+      </view>
+      <view class="menu-right">
+        <text class="menu-tip">未绑定</text>
+        <text class="arrow">></text>
+      </view>
+    </view>
+
+    <!-- 已绑定邀请码显示（只读） -->
+    <view wx:else class="menu-item">
+      <view class="menu-left">
+        <text class="menu-icon">✅</text>
+        <text class="menu-title">邀请人</text>
+      </view>
+      <view class="menu-right">
+        <text class="menu-value bound">已绑定</text>
+      </view>
+    </view>
+
+    <!-- 发货管理入口（仅发货人员可见） -->
+    <view wx:if="{{userInfo.isShipper === 1}}" class="menu-item" bindtap="goToShipping">
+      <view class="menu-left">
+        <text class="menu-icon">📦</text>
+        <text class="menu-title">发货管理</text>
+      </view>
+      <text class="arrow">></text>
+    </view>
+
+    <view class="menu-item" bindtap="goToCustomerService">
+      <view class="menu-left">
+        <text class="menu-icon">💬</text>
+        <text class="menu-title">联系客服</text>
+      </view>
+      <text class="arrow">></text>
+    </view>
+
+    <view class="menu-item" bindtap="goToSettings">
+      <view class="menu-left">
+        <text class="menu-icon">⚙️</text>
+        <text class="menu-title">设置</text>
+      </view>
+      <text class="arrow">></text>
+    </view>
+
+    <view class="menu-item logout-item" bindtap="onLogout">
+      <view class="menu-left">
+        <text class="menu-icon">🚪</text>
+        <text class="menu-title">退出登录</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 绑定邀请码弹窗 -->
+<view wx:if="{{showInviteCodeDialog}}" class="dialog-overlay" bindtap="hideBindInviteCodeDialog">
+  <view class="dialog-container" catchtap="preventClose">
+    <view class="dialog-header">
+      <text class="dialog-title">绑定邀请码</text>
+      <text class="dialog-close" bindtap="hideBindInviteCodeDialog">×</text>
+    </view>
+    <view class="dialog-content">
+      <view class="dialog-tip">绑定后不可修改，请谨慎填写</view>
+      <input class="invite-code-input" type="text" placeholder="请输入邀请码" value="{{inputInviteCode}}" bindinput="onInviteCodeInput" maxlength="20" />
+    </view>
+    <view class="dialog-footer">
+      <button class="dialog-btn cancel-btn" bindtap="hideBindInviteCodeDialog">取消</button>
+      <button class="dialog-btn confirm-btn" bindtap="confirmBindInviteCode">确认绑定</button>
+    </view>
+  </view>
+</view>

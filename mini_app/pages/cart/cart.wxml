@@ -1,0 +1,79 @@
+<!--pages/cart/cart.wxml-->
+<view class="container">
+  <view wx:if="{{cartList.length > 0}}" class="cart-content">
+    <!-- 全选栏 -->
+    <view class="select-all-bar">
+      <label class="checkbox-wrapper">
+        <checkbox-group bindchange="onSelectAll">
+          <checkbox value="all" checked="{{isAllSelected}}" color="#1989fa"/>
+        </checkbox-group>
+        <text class="select-all-text">全选</text>
+      </label>
+    </view>
+
+    <!-- 购物车列表 -->
+    <view class="cart-list">
+      <view wx:for="{{cartList}}" wx:key="id" class="cart-item">
+        <!-- 选择框 -->
+        <label class="item-checkbox">
+          <checkbox-group bindchange="onSelectItem" data-id="{{item.id}}">
+            <checkbox value="{{item.id}}" checked="{{item.selected}}" color="#1989fa"/>
+          </checkbox-group>
+        </label>
+
+        <view class="item-info" bindtap="goToProductDetail" data-id="{{item.productId}}">
+          <image class="item-image" src="{{item.productImage}}" mode="aspectFill"></image>
+          <view class="item-detail">
+            <text class="item-name">{{item.productName}}</text>
+            <text wx:if="{{item.specName}}" class="item-spec">规格: {{item.specName}}</text>
+            <view class="item-bottom">
+              <view class="price-info">
+                <!-- 会员用户显示会员价为主价格 -->
+                <block wx:if="{{isVip && item.vipPrice && item.vipPrice < item.price}}">
+                  <text class="item-price">¥{{item.vipPrice}}</text>
+                  <text class="item-original-price">¥{{item.price}}</text>
+                  <text class="vip-badge">会员价</text>
+                </block>
+                <!-- 非会员或无会员价时显示普通价格 -->
+                <block wx:else>
+                  <text class="item-price">¥{{item.price}}</text>
+                </block>
+              </view>
+              <view class="item-actions">
+                <view class="quantity-btn" catchtap="decreaseQuantity" data-id="{{item.id}}">-</view>
+                <text class="quantity">{{item.quantity}}</text>
+                <view class="quantity-btn" catchtap="increaseQuantity" data-id="{{item.id}}">+</view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="empty-cart">
+    <view class="empty-icon">🛒</view>
+    <text class="empty-text">购物车是空的</text>
+    <button class="go-shopping-btn" bindtap="goToIndex">去逛逛</button>
+  </view>
+
+  <view wx:if="{{cartList.length > 0}}" class="cart-footer">
+    <label class="footer-checkbox">
+      <checkbox-group bindchange="onSelectAll">
+        <checkbox value="all" checked="{{isAllSelected}}" color="#1989fa"/>
+      </checkbox-group>
+      <text class="select-text">全选</text>
+    </label>
+
+    <view class="footer-right">
+      <view class="total-info">
+        <text class="total-label">合计：</text>
+        <text class="total-price">¥{{totalPrice}}</text>
+        <text class="selected-count">(已选{{selectedCount}}件)</text>
+      </view>
+      <button class="checkout-btn" bindtap="goToCheckout" disabled="{{selectedCount === 0}}">
+        去结算{{selectedCount > 0 ? '(' + selectedCount + ')' : ''}}
+      </button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,92 @@
+<!--pages/shipping-detail/shipping-detail.wxml-->
+<view class="container" wx:if="{{order}}">
+  <!-- 订单信息 -->
+  <view class="section">
+    <view class="section-title">订单信息</view>
+    <view class="info-row">
+      <text class="label">订单号：</text>
+      <text class="value">{{order.orderNo}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">下单时间：</text>
+      <text class="value">{{order.createTime}}</text>
+    </view>
+  </view>
+
+  <!-- 收货地址 -->
+  <view class="section">
+    <view class="section-title">收货地址</view>
+    <view class="address-card">
+      <view class="receiver-row">
+        <text class="receiver-name">{{order.receiverName}}</text>
+        <text class="receiver-phone">{{order.receiverPhone}}</text>
+      </view>
+      <text class="address-text">{{order.receiverAddress}}</text>
+    </view>
+  </view>
+
+  <!-- 商品信息 -->
+  <view class="section">
+    <view class="section-title">商品信息</view>
+    <view class="product-list">
+      <view class="product-item" wx:for="{{order.items}}" wx:key="id">
+        <image class="product-image" src="{{item.productImage}}" mode="aspectFill"></image>
+        <view class="product-info">
+          <text class="product-name">{{item.productName}}</text>
+          <text class="product-spec" wx:if="{{item.specName}}">{{item.specName}}</text>
+          <view class="product-footer">
+            <text class="product-price">¥{{item.productPrice}}</text>
+            <text class="product-quantity">x{{item.quantity}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 发货信息 -->
+  <view class="section">
+    <view class="section-title">发货信息</view>
+
+    <view class="form-item">
+      <text class="form-label">快递公司</text>
+      <input class="form-input" placeholder="请输入快递公司" value="{{expressCompany}}" bindinput="onExpressCompanyInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">快递单号</text>
+      <input class="form-input" placeholder="请输入快递单号" value="{{expressNo}}" bindinput="onExpressNoInput" />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">打包前照片</text>
+      <view class="image-upload" bindtap="chooseBeforeImage">
+        <image wx:if="{{packageBeforeImage}}" class="upload-image" src="{{packageBeforeImage}}" mode="aspectFill"></image>
+        <view wx:else class="upload-placeholder">
+          <text class="upload-icon">+</text>
+          <text class="upload-text">上传照片</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">打包后照片</text>
+      <view class="image-upload" bindtap="chooseAfterImage">
+        <image wx:if="{{packageAfterImage}}" class="upload-image" src="{{packageAfterImage}}" mode="aspectFill"></image>
+        <view wx:else class="upload-placeholder">
+          <text class="upload-icon">+</text>
+          <text class="upload-text">上传照片</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">备注</text>
+      <textarea class="form-textarea" placeholder="可选，填写发货备注" value="{{shipRemark}}" bindinput="onRemarkInput" maxlength="200"></textarea>
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-section">
+    <button class="submit-btn" bindtap="submitShip">确认发货</button>
+  </view>
+</view>

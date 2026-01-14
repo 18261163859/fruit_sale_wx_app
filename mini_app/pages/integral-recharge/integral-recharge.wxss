@@ -1,0 +1,219 @@
+/* 积分充值页面样式 */
+.container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+  padding: 30rpx;
+}
+
+/* 页面标题 */
+.header {
+  color: black;
+  padding: 60rpx 30rpx 40rpx;
+  text-align: center;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  font-size: 26rpx;
+  opacity: 0.8;
+}
+
+/* 余额显示 */
+.balance-section {
+  background: white;
+  margin: 0;
+  padding: 40rpx 30rpx;
+  width: 100%;
+  border-bottom: 20rpx solid #f5f5f5;
+}
+
+.balance-card {
+  text-align: center;
+}
+
+.balance-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+}
+
+.balance-value {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #ff6b35;
+}
+
+/* 充值表单 */
+.recharge-section {
+  background: white;
+  margin: 0;
+  padding: 40rpx 30rpx;
+  width: 100%;
+  border-bottom: 20rpx solid #f5f5f5;
+}
+
+.form-card {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.form-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 40rpx;
+  text-align: center;
+}
+
+.input-group {
+  margin-bottom: 40rpx;
+}
+
+.input-label {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 20rpx;
+  font-weight: 500;
+}
+
+.input-field {
+  width: 100%;
+  height: 88rpx;
+  background: #f8f8f8;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 30rpx;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
+}
+
+.input-field:focus {
+  border-color: #1989fa;
+  background: white;
+}
+
+.input-tip {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 16rpx;
+  line-height: 1.4;
+}
+
+.recharge-btn {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #1989fa 0%, #007aff 100%);
+  color: white;
+  border: none;
+  border-radius: 12rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.recharge-btn.disabled {
+  background: #ccc;
+  color: #999;
+}
+
+.recharge-btn:active:not(.disabled) {
+  transform: scale(0.98);
+}
+
+/* 使用说明 */
+.instructions-section {
+  background: white;
+  margin: 0;
+  padding: 30rpx;
+  width: 100%;
+  border-bottom: 20rpx solid #f5f5f5;
+}
+
+.instructions-card {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.instructions-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 30rpx;
+  display: flex;
+  align-items: center;
+}
+
+.instructions-title::before {
+  content: '';
+  display: inline-block;
+  width: 6rpx;
+  height: 32rpx;
+  background: #1989fa;
+  border-radius: 3rpx;
+  margin-right: 16rpx;
+}
+
+.instructions-list {
+  padding-left: 0;
+}
+
+.instruction-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 20rpx;
+  font-size: 26rpx;
+  line-height: 1.5;
+  color: #666;
+}
+
+.instruction-item:last-child {
+  margin-bottom: 0;
+}
+
+.instruction-dot {
+  width: 8rpx;
+  height: 8rpx;
+  background: #1989fa;
+  border-radius: 50%;
+  margin-right: 20rpx;
+  margin-top: 16rpx;
+  flex-shrink: 0;
+}
+
+/* 记录入口 */
+.records-entry {
+  background: white;
+  margin: 0;
+  padding: 30rpx;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.records-text {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.records-arrow {
+  font-size: 40rpx;
+  color: #ccc;
+  font-weight: bold;
+}

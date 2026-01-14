@@ -1,0 +1,123 @@
+<!--pages/shipping-list/shipping-list.wxml-->
+<view class="container">
+  <!-- Tab 切换 -->
+  <view class="tabs">
+    <view class="tab-item {{activeTab === 'pending' ? 'active' : ''}}" bindtap="switchTab" data-tab="pending">
+      待发货
+    </view>
+    <view class="tab-item {{activeTab === 'shipped' ? 'active' : ''}}" bindtap="switchTab" data-tab="shipped">
+      已发货
+    </view>
+  </view>
+
+  <!-- 待发货列表 -->
+  <view class="order-list" wx:if="{{activeTab === 'pending'}}">
+    <block wx:if="{{pendingList.length > 0}}">
+      <view class="order-item" wx:for="{{pendingList}}" wx:key="id">
+        <view class="order-header">
+          <text class="order-no">订单号：{{item.orderNo}}</text>
+          <text class="order-status pending">待发货</text>
+        </view>
+
+        <view class="address-section">
+          <view class="address-icon">📍</view>
+          <view class="address-content">
+            <view class="receiver-row">
+              <text class="receiver-name">{{item.receiverName}}</text>
+              <text class="receiver-phone">{{item.receiverPhone}}</text>
+            </view>
+            <text class="address-text">{{item.receiverAddress}}</text>
+          </view>
+        </view>
+
+        <view class="product-list">
+          <view class="product-item" wx:for="{{item.items}}" wx:key="id" wx:for-item="product">
+            <image class="product-image" src="{{product.productImage}}" mode="aspectFill"></image>
+            <view class="product-info">
+              <text class="product-name">{{product.productName}}</text>
+              <text class="product-spec" wx:if="{{product.specName}}">{{product.specName}}</text>
+              <view class="product-footer">
+                <text class="product-price">¥{{product.productPrice}}</text>
+                <text class="product-quantity">x{{product.quantity}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="order-footer">
+          <view class="order-info">
+            <text class="order-time">下单时间：{{item.createTime}}</text>
+            <text class="order-amount">订单金额：¥{{item.totalAmount}}</text>
+          </view>
+          <button class="ship-btn" bindtap="goToShip" data-id="{{item.id}}">去发货</button>
+        </view>
+      </view>
+    </block>
+
+    <view class="empty-state" wx:else>
+      <view class="empty-icon">📦</view>
+      <text class="empty-text">暂无待发货订单</text>
+    </view>
+  </view>
+
+  <!-- 已发货列表 -->
+  <view class="order-list" wx:if="{{activeTab === 'shipped'}}">
+    <block wx:if="{{shippedList.length > 0}}">
+      <view class="order-item" wx:for="{{shippedList}}" wx:key="id">
+        <view class="order-header">
+          <text class="order-no">订单号：{{item.orderNo}}</text>
+          <text class="order-status shipped">已发货</text>
+        </view>
+
+        <view class="address-section">
+          <view class="address-icon">📍</view>
+          <view class="address-content">
+            <view class="receiver-row">
+              <text class="receiver-name">{{item.receiverName}}</text>
+              <text class="receiver-phone">{{item.receiverPhone}}</text>
+            </view>
+            <text class="address-text">{{item.receiverAddress}}</text>
+          </view>
+        </view>
+
+        <view class="logistics-info" wx:if="{{item.logistics}}">
+          <view class="logistics-row">
+            <text class="logistics-label">快递公司：</text>
+            <text class="logistics-value">{{item.logistics.logisticsCompany}}</text>
+          </view>
+          <view class="logistics-row">
+            <text class="logistics-label">快递单号：</text>
+            <text class="logistics-value">{{item.logistics.trackingNumber}}</text>
+          </view>
+        </view>
+
+        <view class="product-list">
+          <view class="product-item" wx:for="{{item.items}}" wx:key="id" wx:for-item="product">
+            <image class="product-image" src="{{product.productImage}}" mode="aspectFill"></image>
+            <view class="product-info">
+              <text class="product-name">{{product.productName}}</text>
+              <text class="product-spec" wx:if="{{product.specName}}">{{product.specName}}</text>
+              <view class="product-footer">
+                <text class="product-price">¥{{product.productPrice}}</text>
+                <text class="product-quantity">x{{product.quantity}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="order-footer">
+          <view class="order-info">
+            <text class="order-time">发货时间：{{item.updateTime}}</text>
+            <text class="order-amount">订单金额：¥{{item.totalAmount}}</text>
+          </view>
+          <button class="detail-btn" bindtap="goToDetail" data-id="{{item.id}}">查看详情</button>
+        </view>
+      </view>
+    </block>
+
+    <view class="empty-state" wx:else>
+      <view class="empty-icon">📦</view>
+      <text class="empty-text">暂无已发货订单</text>
+    </view>
+  </view>
+</view>

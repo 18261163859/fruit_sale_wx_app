@@ -1,0 +1,252 @@
+package com.fruit.sale.service.impl;
+
+import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fruit.sale.dto.AgentApplyDTO;
+import com.fruit.sale.entity.AgentApply;
+import com.fruit.sale.entity.CommissionRecord;
+import com.fruit.sale.entity.UserInfo;
+import com.fruit.sale.enums.AgentApplyStatusEnum;
+import com.fruit.sale.enums.UserTypeEnum;
+import com.fruit.sale.exception.BusinessException;
+import com.fruit.sale.mapper.AgentApplyMapper;
+import com.fruit.sale.mapper.CommissionRecordMapper;
+import com.fruit.sale.mapper.UserInfoMapper;
+import com.fruit.sale.service.IAgentService;
+import com.fruit.sale.vo.AgentStatVO;
+import com.fruit.sale.vo.AgentTeamVO;
+import com.fruit.sale.vo.CommissionVO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * 代理服务实现
+ *
+ * @author fruit-sale
+ * @since 2024-09-30
+ */
+@Slf4j
+@Service
+public class AgentServiceImpl implements IAgentService {
+
+    @Autowired
+    private UserInfoMapper userInfoMapper;
+
+    @Autowired
+    private AgentApplyMapper agentApplyMapper;
+
+    @Autowired
+    private CommissionRecordMapper commissionRecordMapper;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void applyAgent(Long userId, AgentApplyDTO agentApplyDTO) {
+        UserInfo user = userInfoMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 必须是星享会员才能申请代理
+        if (user.getUserType() == 2 == null || user.getUserType() == 2 != 1) {
+            throw new BusinessException("必须先开通星享会员才能申请代理");
+        }
+
+        // 检查是否已经是代理
+        if (user.getUserType() == 3 || user.getUserType() == 4) {
+            throw new BusinessException("您已经是代理，无需重复申请");
+        }
+
+        // 检查是否有待审核的申请
+        LambdaQueryWrapper<AgentApply> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(AgentApply::getUserId, userId)
+                .eq(AgentApply::getStatus, AgentApplyStatusEnum.PENDING);
+        AgentApply existApply = agentApplyMapper.selectOne(wrapper);
+        if (existApply != null) {
+            throw new BusinessException("您有待审核的代理申请，请勿重复提交");
+        }
+
+        // 验证推荐人
+        if (agentApplyDTO.getRecommenderId() != null) {
+            UserInfo recommender = userInfoMapper.selectById(agentApplyDTO.getRecommenderId());
+            if (recommender == null || recommender.getUserType() != 3) {
+                throw new BusinessException("推荐人不存在或不是一级代理");
+            }
+        }
+
+        // 创建申请记录
+        AgentApply apply = new AgentApply();
+        apply.setUserId(userId);
+        apply.setApplyLevel(agentApplyDTO.getApplyLevel());
+        apply.setRecommenderId(agentApplyDTO.getRecommenderId());
+        apply.setApplyReason(agentApplyDTO.getApplyReason());
+        apply.setCommissionRate(agentApplyDTO.getCommissionRate());
+        apply.setStatus(AgentApplyStatusEnum.PENDING);
+        agentApplyMapper.insert(apply);
+    }
+
+    @Override
+    public List<AgentTeamVO> getMyTeam(Long userId) {
+        UserInfo user = userInfoMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        List<AgentTeamVO> result = new ArrayList<>();
+
+        if (user.getUserType() == 3) {
+            // 一级代理：查看所有二级代理和其下属会员
+            List<UserInfo> subAgents = userInfoMapper.selectList(
+                    new LambdaQueryWrapper<UserInfo>()
+                            .eq(UserInfo::getParentAgentId, userId)
+                            .eq(UserInfo::getUserType, UserTypeEnum.AGENT_LEVEL_2)
+            );
+
+            for (UserInfo subAgent : subAgents) {
+                AgentTeamVO vo = BeanUtil.copyProperties(subAgent, AgentTeamVO.class);
+                // 计算该代理的业绩
+                BigDecimal totalCommission = calculateTotalCommission(subAgent.getId());
+                vo.setTotalCommissionAmount(totalCommission);
+                result.add(vo);
+            }
+
+            // 查看直属普通会员
+            List<UserInfo> members = userInfoMapper.selectList(
+                    new LambdaQueryWrapper<UserInfo>()
+                            .eq(UserInfo::getInviterUserId, userId)
+                            .in(UserInfo::getUserType, UserTypeEnum.NORMAL, UserTypeEnum.STAR)
+            );
+
+            for (UserInfo member : members) {
+                AgentTeamVO vo = BeanUtil.copyProperties(member, AgentTeamVO.class);
+                result.add(vo);
+            }
+
+        } else if (user.getUserType() == 4) {
+            // 二级代理：查看自己下属的普通会员
+            List<UserInfo> members = userInfoMapper.selectList(
+                    new LambdaQueryWrapper<UserInfo>()
+                            .eq(UserInfo::getInviterUserId, userId)
+                            .in(UserInfo::getUserType, UserTypeEnum.NORMAL, UserTypeEnum.STAR)
+            );
+
+            for (UserInfo member : members) {
+                AgentTeamVO vo = BeanUtil.copyProperties(member, AgentTeamVO.class);
+                result.add(vo);
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<CommissionVO> getCommissionList(Long userId) {
+        List<CommissionRecord> records = commissionRecordMapper.selectList(
+                new LambdaQueryWrapper<CommissionRecord>()
+                        .eq(CommissionRecord::getAgentId, userId)
+                        .orderByDesc(CommissionRecord::getCreateTime)
+        );
+
+        return records.stream()
+                .map(record -> BeanUtil.copyProperties(record, CommissionVO.class))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public AgentStatVO getStatistics(Long userId) {
+        UserInfo user = userInfoMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        AgentStatVO vo = new AgentStatVO();
+        vo.setAgentId(userId);
+        vo.setNickname(user.getNickname());
+
+        // 设置代理级别
+        if (user.getUserType() == 3) {
+            vo.setAgentLevel(2);
+        } else if (user.getUserType() == 4) {
+            vo.setAgentLevel(3);
+        }
+
+        // 累计返现金额
+        BigDecimal totalCommission = calculateTotalCommission(userId);
+        vo.setTotalCommission(totalCommission);
+
+        // 本月返现金额
+        YearMonth currentMonth = YearMonth.now();
+        LocalDateTime monthStart = currentMonth.atDay(1).atStartOfDay();
+        LocalDateTime monthEnd = currentMonth.atEndOfMonth().atTime(23, 59, 59);
+
+        List<CommissionRecord> monthRecords = commissionRecordMapper.selectList(
+                new LambdaQueryWrapper<CommissionRecord>()
+                        .eq(CommissionRecord::getAgentId, userId)
+                        .between(CommissionRecord::getCreateTime, monthStart, monthEnd)
+        );
+        BigDecimal monthCommission = monthRecords.stream()
+                .map(CommissionRecord::getCommissionAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        vo.setMonthCommission(monthCommission);
+
+        // 待结算金额
+        List<CommissionRecord> pendingRecords = commissionRecordMapper.selectList(
+                new LambdaQueryWrapper<CommissionRecord>()
+                        .eq(CommissionRecord::getAgentId, userId)
+                        .eq(CommissionRecord::getStatus, 0)
+        );
+        BigDecimal pendingCommission = pendingRecords.stream()
+                .map(CommissionRecord::getCommissionAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        vo.setPendingCommission(pendingCommission);
+
+        // 下级统计
+        if (user.getUserType() == 3) {
+            int subAgentCount = userInfoMapper.selectCount(
+                    new LambdaQueryWrapper<UserInfo>()
+                            .eq(UserInfo::getParentAgentId, userId)
+                            .eq(UserInfo::getUserType, UserTypeEnum.AGENT_LEVEL_2)
+            ).intValue();
+            vo.setSubAgentCount(subAgentCount);
+
+            int subMemberCount = userInfoMapper.selectCount(
+                    new LambdaQueryWrapper<UserInfo>()
+                            .eq(UserInfo::getInviterUserId, userId)
+                            .in(UserInfo::getUserType, UserTypeEnum.NORMAL, UserTypeEnum.STAR)
+            ).intValue();
+            vo.setSubMemberCount(subMemberCount);
+
+        } else if (user.getUserType() == 4) {
+            vo.setSubAgentCount(0);
+            int subMemberCount = userInfoMapper.selectCount(
+                    new LambdaQueryWrapper<UserInfo>()
+                            .eq(UserInfo::getInviterUserId, userId)
+                            .in(UserInfo::getUserType, UserTypeEnum.NORMAL, UserTypeEnum.STAR)
+            ).intValue();
+            vo.setSubMemberCount(subMemberCount);
+        }
+
+        return vo;
+    }
+
+    /**
+     * 计算总返现金额
+     */
+    private BigDecimal calculateTotalCommission(Long agentId) {
+        List<CommissionRecord> records = commissionRecordMapper.selectList(
+                new LambdaQueryWrapper<CommissionRecord>()
+                        .eq(CommissionRecord::getAgentId, agentId)
+        );
+        return records.stream()
+                .map(CommissionRecord::getCommissionAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+}

@@ -1,0 +1,283 @@
+/* pages/shipping-detail/shipping-detail.wxss */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+  padding-bottom: 140rpx;
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+  padding: 30rpx;
+}
+
+/* 卡片区域 */
+.section {
+  background-color: #fff;
+  margin: 24rpx;
+  border-radius: 20rpx;
+  padding: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  width: 100%;
+}
+
+.section-title {
+  font-size: 34rpx;
+  color: #1a1a1a;
+  font-weight: 700;
+  margin-bottom: 24rpx;
+  padding-left: 12rpx;
+  border-left: 6rpx solid #1989fa;
+}
+
+/* 信息行 */
+.info-row {
+  display: flex;
+  font-size: 28rpx;
+  margin-bottom: 20rpx;
+  line-height: 1.6;
+}
+
+.label {
+  color: #8c8c8c;
+  min-width: 180rpx;
+  font-weight: 500;
+}
+
+.value {
+  color: #262626;
+  flex: 1;
+  word-break: break-all;
+}
+
+/* 收货地址卡片 */
+.address-card {
+  padding: 28rpx;
+  background: linear-gradient(135deg, #f0f8ff 0%, #e8f4ff 100%);
+  border-radius: 16rpx;
+  border: 2rpx solid #d6ebff;
+}
+
+.receiver-row {
+  display: flex;
+  gap: 24rpx;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.receiver-name {
+  font-size: 32rpx;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.receiver-phone {
+  font-size: 28rpx;
+  color: #595959;
+  background-color: rgba(25, 137, 250, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.address-text {
+  font-size: 28rpx;
+  color: #595959;
+  line-height: 1.8;
+}
+
+/* 商品列表 */
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.product-item {
+  display: flex;
+  gap: 24rpx;
+  padding: 20rpx;
+  background-color: #fafafa;
+  border-radius: 12rpx;
+}
+
+.product-image {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 16rpx;
+  flex-shrink: 0;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-name {
+  font-size: 30rpx;
+  color: #1a1a1a;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.product-spec {
+  font-size: 24rpx;
+  color: #8c8c8c;
+  margin-top: 8rpx;
+  background-color: #f0f0f0;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.product-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.product-price {
+  font-size: 32rpx;
+  color: #ff5722;
+  font-weight: 700;
+}
+
+.product-quantity {
+  font-size: 28rpx;
+  color: #8c8c8c;
+}
+
+/* 表单样式 */
+.form-item {
+  margin-bottom: 40rpx;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  font-size: 30rpx;
+  color: #1a1a1a;
+  margin-bottom: 20rpx;
+  font-weight: 600;
+}
+
+.form-label::before {
+  content: '*';
+  color: #ff5722;
+  margin-right: 8rpx;
+  font-weight: bold;
+}
+
+.form-input {
+  width: 100%;
+  height: 96rpx;
+  padding: 0 28rpx;
+  font-size: 30rpx;
+  color: #262626;
+  background-color: #fafafa;
+  border: 2rpx solid #e8e8e8;
+  border-radius: 12rpx;
+  box-sizing: border-box;
+  transition: all 0.3s;
+}
+
+.form-input:focus {
+  background-color: #fff;
+  border-color: #1989fa;
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 180rpx;
+  padding: 24rpx 28rpx;
+  font-size: 30rpx;
+  color: #262626;
+  background-color: #fafafa;
+  border: 2rpx solid #e8e8e8;
+  border-radius: 12rpx;
+  box-sizing: border-box;
+  transition: all 0.3s;
+}
+
+.form-textarea:focus {
+  background-color: #fff;
+  border-color: #1989fa;
+}
+
+/* 图片上传区域 */
+.image-upload {
+  width: 220rpx;
+  height: 220rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.upload-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f0f8ff 0%, #e8f4ff 100%);
+  border: 3rpx dashed #1989fa;
+  border-radius: 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  transition: all 0.3s;
+}
+
+.upload-placeholder:active {
+  background: linear-gradient(135deg, #e8f4ff 0%, #d6ebff 100%);
+  transform: scale(0.98);
+}
+
+.upload-icon {
+  font-size: 64rpx;
+  color: #1989fa;
+  font-weight: 300;
+}
+
+.upload-text {
+  font-size: 26rpx;
+  color: #1989fa;
+  font-weight: 500;
+}
+
+/* 提交按钮区域 */
+.submit-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24rpx;
+  background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,1) 100%);
+  backdrop-filter: blur(10rpx);
+  box-shadow: 0 -4rpx 24rpx rgba(0, 0, 0, 0.08);
+}
+
+.submit-btn {
+  width: 100%;
+  height: 96rpx;
+  background: linear-gradient(135deg, #1989fa 0%, #0d7de0 100%);
+  color: #fff;
+  font-size: 34rpx;
+  font-weight: 700;
+  border-radius: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(25, 137, 250, 0.4);
+  transition: all 0.3s;
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 4rpx 16rpx rgba(25, 137, 250, 0.3);
+}

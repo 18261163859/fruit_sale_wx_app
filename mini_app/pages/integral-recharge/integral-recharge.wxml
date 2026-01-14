@@ -1,0 +1,73 @@
+<!--积分充值页面-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="header">
+    <view class="title">积分充值</view>
+    <view class="subtitle">使用兑换码充值积分</view>
+  </view>
+
+  <!-- 当前积分 -->
+  <view class="balance-section">
+    <view class="balance-card">
+      <view class="balance-label">当前积分</view>
+      <view class="balance-value">{{userInfo.integralBalance || 0}}</view>
+    </view>
+  </view>
+
+  <!-- 充值表单 -->
+  <view class="recharge-section">
+    <view class="form-card">
+      <view class="form-title">积分充值</view>
+
+      <!-- 兑换码输入 -->
+      <view class="input-group">
+        <view class="input-label">兑换码</view>
+        <input
+          class="input-field"
+          type="text"
+          placeholder="请输入16位兑换码"
+          value="{{cardCode}}"
+          bindinput="onCardCodeInput"
+          maxlength="16"
+        />
+        <view class="input-tip">请输入实体积分卡上的16位兑换码</view>
+      </view>
+
+      <!-- 充值按钮 -->
+      <button
+        class="recharge-btn {{!canRecharge ? 'disabled' : ''}}"
+        bindtap="onRecharge"
+        disabled="{{!canRecharge || loading}}"
+      >
+        {{loading ? '充值中...' : '立即充值'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 使用说明 -->
+  <view class="instructions-section">
+    <view class="instructions-card">
+      <view class="instructions-title">使用说明</view>
+      <view class="instructions-list">
+        <view class="instruction-item">
+          <view class="instruction-dot"></view>
+          <text>积分卡为线下发放的实体卡，请妥善保管</text>
+        </view>
+        <view class="instruction-item">
+          <view class="instruction-dot"></view>
+          <text>每张积分卡只能使用一次，使用后无法重复充值</text>
+        </view>
+        <view class="instruction-item">
+          <view class="instruction-dot"></view>
+          <text>积分充值后立即生效，可用于抵扣商品金额</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 充值记录入口 -->
+  <view class="records-entry" bindtap="goToRecords">
+    <view class="records-text">查看积分记录</view>
+    <view class="records-arrow">›</view>
+  </view>
+</view>

@@ -1,0 +1,170 @@
+# 水果销售平台 - 生产部署配置
+# 使用预构建镜像，无需本地构建
+
+services:
+  # ==================== 中间件 ====================
+
+  mysql:
+    image: mysql:8.0
+    container_name: fruit-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: fruit_sale
+      MYSQL_USER: fruit_admin
+      MYSQL_PASSWORD: fruit123456
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database_design.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./init_data.sql:/docker-entrypoint-initdb.d/02-data.sql:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fruit-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: fruit-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fruit-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: fruit-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - fruit-network
+
+  # ==================== 后端服务 ====================
+
+  backend:
+    image: fruit-backend:latest
+    container_name: fruit-backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/fruit_sale?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: fruit_admin
+      SPRING_DATASOURCE_PASSWORD: fruit123456
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_PUBLIC_URL: https://www.zhiyeji.com/files
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      JAVA_OPTS: "-Xms256m -Xmx512m -XX:+UseG1GC"
+      TZ: Asia/Shanghai
+    expose:
+      - "8000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/api/doc.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - fruit-network
+
+  # ==================== 前端服务 ====================
+
+  admin-web:
+    image: fruit-admin-web:latest
+    container_name: fruit-admin-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    expose:
+      - "80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - fruit-network
+
+  # ==================== Nginx 代理 ====================
+
+  nginx:
+    image: nginx:alpine
+    container_name: fruit-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./cert:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+      - admin-web
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - fruit-network
+
+# ==================== 数据卷 ====================
+
+volumes:
+  mysql_data:
+    name: fruit-mysql-data
+  redis_data:
+    name: fruit-redis-data
+  minio_data:
+    name: fruit-minio-data
+  nginx_logs:
+    name: fruit-nginx-logs
+
+# ==================== 网络 ====================
+
+networks:
+  fruit-network:
+    name: fruit-network
+    driver: bridge

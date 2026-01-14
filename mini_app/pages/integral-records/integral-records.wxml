@@ -1,0 +1,81 @@
+<!--积分记录页面-->
+<view class="container">
+  <!-- 页面标题 -->
+  <view class="header">
+    <view class="title">积分记录</view>
+  </view>
+
+  <!-- 积分统计信息 -->
+  <view class="stats-section">
+    <view class="stats-card">
+      <view class="stats-title">当前积分余额</view>
+      <view class="stats-value">{{userInfo.integralBalance || 0}}</view>
+    </view>
+  </view>
+
+  <!-- 记录筛选 -->
+  <view class="filter-section">
+    <view class="filter-tabs">
+      <view
+        class="filter-tab {{activeTab === 'all' ? 'active' : ''}}"
+        data-tab="all"
+        bindtap="switchTab"
+      >
+        全部
+      </view>
+      <view
+        class="filter-tab {{activeTab === 'income' ? 'active' : ''}}"
+        data-tab="income"
+        bindtap="switchTab"
+      >
+        收入
+      </view>
+      <view
+        class="filter-tab {{activeTab === 'expense' ? 'active' : ''}}"
+        data-tab="expense"
+        bindtap="switchTab"
+      >
+        支出
+      </view>
+    </view>
+  </view>
+
+  <!-- 记录列表 -->
+  <view class="records-section">
+    <view wx:if="{{loading}}" class="loading">
+      <text>加载中...</text>
+    </view>
+
+    <view wx:elif="{{filteredRecords.length === 0}}" class="empty">
+      <image src="../../images/empty.png" class="empty-image" mode="aspectFit"></image>
+      <text class="empty-text">暂无积分记录</text>
+    </view>
+
+    <view wx:else class="records-list">
+      <view
+        class="record-item"
+        wx:for="{{filteredRecords}}"
+        wx:key="id"
+      >
+        <view class="record-main">
+          <view class="record-left">
+            <view class="record-type">{{item.changeTypeText}}</view>
+            <view class="record-time">{{item.createTime}}</view>
+            <view wx:if="{{item.remark}}" class="record-remark">{{item.remark}}</view>
+          </view>
+          <view class="record-right">
+            <view class="record-amount {{item.changeAmount > 0 ? 'positive' : 'negative'}}">
+              {{item.changeAmount > 0 ? '+' : ''}}{{item.changeAmount}}
+            </view>
+            <view class="record-balance">余额: {{item.afterBalance}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部提示 -->
+  <view wx:if="{{filteredRecords.length > 0}}" class="footer-tip">
+    <text>已显示全部记录</text>
+  </view>
+</view>

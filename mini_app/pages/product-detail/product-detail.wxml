@@ -1,0 +1,80 @@
+<!--pages/product-detail/product-detail.wxml-->
+<view class="container">
+  <image class="product-image" src="{{product.mainImage}}" mode="aspectFill"></image>
+
+  <view class="product-info">
+    <text class="product-name">{{product.productName}}</text>
+
+    <view class="price-row">
+      <view class="price-section">
+        <text class="price-label">¥</text>
+        <text class="price">{{selectedSpec ? selectedSpec.price : product.price}}</text>
+      </view>
+      <text class="sales">已售 {{product.salesCount || 0}}</text>
+    </view>
+
+    <!-- VIP价格显示 (只有VIP会员才显示) -->
+    <view wx:if="{{isVip && ((selectedSpec && selectedSpec.vipPrice < selectedSpec.price) || (!selectedSpec && product.vipPrice < product.price))}}" class="vip-price-row">
+      <text class="vip-price-label">会员价</text>
+      <text class="vip-price-value">¥{{selectedSpec ? selectedSpec.vipPrice : product.vipPrice}}</text>
+      <text class="vip-save">省¥{{vipSaveAmount}}</text>
+    </view>
+
+    <!-- 规格选择 -->
+    <view wx:if="{{specs && specs.length > 0}}" class="spec-section" bindtap="showSpecSelector">
+      <text class="spec-label">规格</text>
+      <view class="spec-value-row">
+        <text class="spec-value">{{selectedSpec ? selectedSpec.specName : '请选择规格'}}</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="product-detail">
+    <view class="detail-title">商品详情</view>
+    <view class="detail-content">
+      <text>{{product.description}}</text>
+    </view>
+  </view>
+
+  <view class="footer">
+    <button class="add-cart-btn" bindtap="addToCart">加入购物车</button>
+    <button class="buy-now-btn" bindtap="buyNow">立即购买</button>
+  </view>
+
+  <!-- 规格选择弹窗 -->
+  <view wx:if="{{showSpecPopup}}" class="spec-popup-mask" bindtap="hideSpecSelector">
+    <view class="spec-popup" catchtap="stopPropagation">
+      <view class="spec-header">
+        <view class="spec-product-info">
+          <image class="spec-product-image" src="{{product.mainImage}}" mode="aspectFill"></image>
+          <view class="spec-product-detail">
+            <text class="spec-product-price">¥{{selectedSpec ? selectedSpec.price : product.price}}</text>
+            <text class="spec-product-stock">库存: {{selectedSpec ? selectedSpec.stock : product.stock}}</text>
+          </view>
+        </view>
+        <text class="spec-close" bindtap="hideSpecSelector">×</text>
+      </view>
+
+      <view class="spec-content">
+        <text class="spec-title">选择规格</text>
+        <view class="spec-options">
+          <view
+            wx:for="{{specs}}"
+            wx:key="id"
+            class="spec-option {{selectedSpec && selectedSpec.id === item.id ? 'selected' : ''}} {{item.status === 0 ? 'disabled' : ''}}"
+            bindtap="selectSpec"
+            data-spec="{{item}}"
+          >
+            <text class="spec-name">{{item.specName}}</text>
+            <text class="spec-price">¥{{item.price}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="spec-footer">
+        <button class="spec-confirm-btn" bindtap="confirmSpec">确定</button>
+      </view>
+    </view>
+  </view>
+</view>

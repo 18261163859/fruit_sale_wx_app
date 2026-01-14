@@ -1,0 +1,117 @@
+<!--pages/index/index.wxml-->
+<view class="container" style="background-color: {{themeConfig.background}}">
+  <!-- 搜索栏 -->
+  <view class="search-bar" style="background-color: {{themeConfig.primary}}">
+    <view class="search-input" bindtap="goToSearch">
+      <icon class="search-icon" type="search" size="16" color="#999"></icon>
+      <text class="search-placeholder">搜索高端水果</text>
+    </view>
+  </view>
+
+  <!-- 轮播图 -->
+  <swiper
+    class="banner-swiper"
+    indicator-dots="{{true}}"
+    autoplay="{{false}}"
+    interval="3000"
+    duration="500"
+    circular="{{true}}"
+    indicator-color="rgba(255,255,255,0.5)"
+    indicator-active-color="{{themeConfig.primary}}"
+    bindchange="onBannerChange"
+    current="{{currentBannerIndex}}"
+  >
+    <swiper-item wx:for="{{banners}}" wx:key="id" bindtap="onBannerTap" data-index="{{index}}">
+      <!-- 图片轮播 -->
+      <image wx:if="{{item.bannerType === 1 || !item.bannerType}}" class="banner-image" src="{{item.imageUrl}}" mode="aspectFill" lazy-load></image>
+
+      <!-- 视频轮播 -->
+      <video
+        wx:if="{{item.bannerType === 2}}"
+        id="banner-video-{{index}}"
+        class="banner-video"
+        src="{{item.videoUrl}}"
+        poster="{{item.imageUrl}}"
+        object-fit="cover"
+        autoplay="{{currentBannerIndex === index}}"
+        loop="{{false}}"
+        show-center-play-btn="{{false}}"
+        show-play-btn="{{false}}"
+        show-fullscreen-btn="{{false}}"
+        muted="{{true}}"
+        bindended="onVideoEnded"
+        data-index="{{index}}"
+      ></video>
+
+      <view wx:if="{{item.title}}" class="banner-title">{{item.title}}</view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-wrapper">
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <!-- 推荐商品 -->
+  <view class="section" wx:if="{{!loading}}">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="title-icon">🔥</text>
+        <text class="title-text" style="color: {{themeConfig.textPrimary}}">精选推荐</text>
+      </view>
+      <view class="section-more" bindtap="goToCategory">
+        <text class="more-text">查看更多</text>
+        <text class="more-arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 商品列表 -->
+    <view class="product-list" wx:if="{{products.length > 0}}">
+      <view
+        class="product-item {{currentTheme}}-item"
+        wx:for="{{products}}"
+        wx:key="id"
+        bindtap="goToProductDetail"
+        data-id="{{item.id}}"
+        style="background-color: {{themeConfig.cardBg}}"
+      >
+        <image class="product-image" src="{{item.coverImage}}" mode="aspectFill" lazy-load></image>
+
+        <!-- VIP标签 -->
+        <view class="vip-badge" wx:if="{{item.vipPrice && userInfo && userInfo.userType === 2}}" style="background-color: {{themeConfig.secondary}}">
+          <text class="vip-badge-text">VIP</text>
+        </view>
+
+        <view class="product-info">
+          <text class="product-name" style="color: {{themeConfig.textPrimary}}">{{item.productName || item.name}}</text>
+
+          <!-- 价格区域 -->
+          <view class="product-price-wrapper">
+            <!-- VIP会员显示VIP价 -->
+            <view wx:if="{{item.vipPrice && userInfo && userInfo.userType === 2}}" class="price-group">
+              <text class="vip-price" style="color: {{themeConfig.primary}}">¥{{item.vipPrice}}</text>
+              <text class="original-price">¥{{item.price}}</text>
+            </view>
+            <!-- 普通会员显示原价 -->
+            <view wx:else class="price-group">
+              <text class="product-price" style="color: {{themeConfig.primary}}">¥{{item.price}}</text>
+            </view>
+          </view>
+
+          <view class="product-footer">
+            <text class="product-sales">已售{{item.salesCount || 0}}件</text>
+            <view class="add-cart-btn" catchtap="addToCart" data-id="{{item.id}}" data-name="{{item.productName || item.name}}" style="background-color: {{themeConfig.primary}}">
+              <text class="add-icon">+</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{products.length === 0 && !loading}}">
+      <image class="empty-image" src="/images/empty-product.png" mode="aspectFit"></image>
+      <text class="empty-text">暂无商品</text>
+    </view>
+  </view>
+</view>

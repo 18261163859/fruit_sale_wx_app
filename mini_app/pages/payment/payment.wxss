@@ -1,0 +1,163 @@
+/* pages/payment/payment.wxss */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 80rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 支付图标 */
+.payment-icon {
+  margin-bottom: 60rpx;
+  animation: bounce 2s infinite;
+}
+
+.icon-circle {
+  width: 180rpx;
+  height: 180rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 100rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.2);
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20rpx);
+  }
+}
+
+/* 支付金额 */
+.amount-section {
+  margin-bottom: 60rpx;
+  text-align: center;
+}
+
+.amount-label {
+  display: block;
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 16rpx;
+}
+
+.amount-value {
+  display: block;
+  font-size: 88rpx;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+}
+
+/* 订单信息 */
+.order-info {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24rpx;
+  padding: 40rpx 32rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 0;
+}
+
+.info-row:not(:last-child) {
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.info-row .label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.info-row .value {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 支付提示 */
+.payment-tip {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 60rpx;
+  text-align: center;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+}
+
+.tip-text {
+  font-size: 26rpx;
+  color: #fff;
+  line-height: 1.6;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  width: 100%;
+  display: flex;
+  gap: 24rpx;
+  margin-bottom: 60rpx;
+}
+
+.btn {
+  flex: 1;
+  height: 96rpx;
+  line-height: 96rpx;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  border: none;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.btn::after {
+  border: none;
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.cancel-btn {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  border: 2rpx solid rgba(255, 255, 255, 0.5);
+}
+
+.pay-btn {
+  background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+  color: #fff;
+}
+
+.pay-btn[disabled] {
+  opacity: 0.6;
+}
+
+/* 底部说明 */
+.bottom-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding: 0 20rpx;
+}
+
+.bottom-tip text {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.8;
+}

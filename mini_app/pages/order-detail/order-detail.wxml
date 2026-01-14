@@ -1,0 +1,232 @@
+<!--pages/order-detail/order-detail.wxml-->
+<view class="container">
+  <view wx:if="{{loading}}" class="loading-wrapper">
+    <view class="loading-text">加载中...</view>
+  </view>
+
+  <view wx:else class="detail-content">
+    <!-- 订单状态提示 -->
+    <view class="status-banner {{order.statusClass}}">
+      <text class="status-icon">
+        <text wx:if="{{order.orderStatus === 0}}">⏰</text>
+        <text wx:elif="{{order.orderStatus === 1}}">📦</text>
+        <text wx:elif="{{order.orderStatus === 2}}">🚚</text>
+        <text wx:elif="{{order.orderStatus === 3}}">✅</text>
+        <text wx:elif="{{order.orderStatus === 4}}">❌</text>
+      </text>
+      <view class="status-info">
+        <text class="status-text">{{order.statusText}}</text>
+        <text class="status-tip">{{order.statusTip}}</text>
+      </view>
+    </view>
+
+    <!-- 订单进度 (非已取消订单显示) -->
+    <view wx:if="{{order.orderStatus !== 4}}" class="progress-section">
+      <view class="progress-steps">
+        <view class="step-item {{step >= 0 ? 'active' : ''}}">
+          <view class="step-circle">
+            <text class="step-number" wx:if="{{step < 0}}">1</text>
+            <text class="step-check" wx:else>✓</text>
+          </view>
+          <text class="step-label">下单</text>
+        </view>
+
+        <view class="step-line {{step >= 1 ? 'active' : ''}}"></view>
+
+        <view class="step-item {{step >= 1 ? 'active' : ''}}">
+          <view class="step-circle">
+            <text class="step-number" wx:if="{{step < 1}}">2</text>
+            <text class="step-check" wx:else>✓</text>
+          </view>
+          <text class="step-label">支付</text>
+        </view>
+
+        <view class="step-line {{step >= 2 ? 'active' : ''}}"></view>
+
+        <view class="step-item {{step >= 2 ? 'active' : ''}}">
+          <view class="step-circle">
+            <text class="step-number" wx:if="{{step < 2}}">3</text>
+            <text class="step-check" wx:else>✓</text>
+          </view>
+          <text class="step-label">发货</text>
+        </view>
+
+        <view class="step-line {{step >= 3 ? 'active' : ''}}"></view>
+
+        <view class="step-item {{step >= 3 ? 'active' : ''}}">
+          <view class="step-circle">
+            <text class="step-number" wx:if="{{step < 3}}">4</text>
+            <text class="step-check" wx:else>✓</text>
+          </view>
+          <text class="step-label">完成</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 物流信息 (已发货或已完成时显示) -->
+    <view wx:if="{{(order.orderStatus === 2 || order.orderStatus === 3) && (order.expressCompany || order.expressNo)}}" class="logistics-section">
+      <view class="section-title">物流信息</view>
+      <view class="logistics-content">
+        <view wx:if="{{order.expressCompany}}" class="logistics-row">
+          <text class="label">快递公司:</text>
+          <text class="value">{{order.expressCompany}}</text>
+        </view>
+        <view wx:if="{{order.expressNo}}" class="logistics-row">
+          <text class="label">快递单号:</text>
+          <text class="value">{{order.expressNo}}</text>
+          <text class="copy-btn" bindtap="copyExpressNo">复制</text>
+        </view>
+        <view wx:if="{{order.shipTime}}" class="logistics-row">
+          <text class="label">发货时间:</text>
+          <text class="value">{{order.shipTime}}</text>
+        </view>
+        <view wx:if="{{order.shipRemark}}" class="logistics-row">
+          <text class="label">发货备注:</text>
+          <text class="value">{{order.shipRemark}}</text>
+        </view>
+        <view wx:if="{{order.packageBeforeImage || order.packageAfterImage}}" class="logistics-photos">
+          <text class="label">打包照片:</text>
+          <view class="photos-list">
+            <image
+              wx:if="{{order.packageBeforeImage}}"
+              class="photo-item"
+              src="{{order.packageBeforeImage}}"
+              mode="aspectFill"
+              bindtap="previewImage"
+              data-url="{{order.packageBeforeImage}}"
+            />
+            <image
+              wx:if="{{order.packageAfterImage}}"
+              class="photo-item"
+              src="{{order.packageAfterImage}}"
+              mode="aspectFill"
+              bindtap="previewImage"
+              data-url="{{order.packageAfterImage}}"
+            />
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 收货地址 -->
+    <view class="address-section">
+      <view class="section-title">收货信息</view>
+      <view class="address-content">
+        <view class="receiver-info">
+          <text class="receiver-name">{{order.receiverName}}</text>
+          <text class="receiver-phone">{{order.receiverPhone}}</text>
+        </view>
+        <view class="address-detail">
+          {{order.receiverAddress}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 商品列表 -->
+    <view class="products-section">
+      <view class="section-title">商品信息</view>
+      <view class="products-list">
+        <view
+          wx:for="{{order.items}}"
+          wx:key="id"
+          class="product-item"
+        >
+          <image class="product-image" src="{{item.productImage}}" mode="aspectFill" />
+          <view class="product-info">
+            <text class="product-name">{{item.productName}}</text>
+            <text class="product-spec" wx:if="{{item.specName}}">{{item.specName}}</text>
+            <view class="price-row">
+              <text class="price">¥{{item.productPrice}}</text>
+              <text class="quantity">x{{item.quantity}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 价格明细 -->
+    <view class="price-section">
+      <view class="section-title">价格明细</view>
+      <view class="price-details">
+        <view class="price-row">
+          <text class="label">商品总额</text>
+          <text class="value">¥{{order.totalAmount}}</text>
+        </view>
+        <view wx:if="{{order.discountAmount > 0}}" class="price-row">
+          <text class="label">VIP优惠</text>
+          <text class="value deduct">-¥{{order.discountAmount}}</text>
+        </view>
+        <view wx:if="{{order.integralAmount > 0}}" class="price-row">
+          <text class="label">积分抵扣</text>
+          <text class="value deduct">-¥{{order.integralAmount}}</text>
+        </view>
+        <view wx:if="{{order.useIntegral > 0}}" class="price-row">
+          <text class="label">使用积分</text>
+          <text class="value">{{order.useIntegral}}积分</text>
+        </view>
+        <view class="price-row">
+          <text class="label">运费</text>
+          <text wx:if="{{order.freightAmount > 0}}" class="value">¥{{order.freightAmount}}</text>
+          <text wx:else class="value free">免运费</text>
+        </view>
+        <view class="price-row total">
+          <text class="label">实付金额</text>
+          <text class="value amount">¥{{order.payAmount}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 订单信息 -->
+    <view class="order-info-section">
+      <view class="section-title">订单信息</view>
+      <view class="order-info-list">
+        <view class="info-row">
+          <text class="label">订单号</text>
+          <view class="value-with-copy">
+            <text class="value">{{order.orderNo}}</text>
+            <text class="copy-btn" bindtap="copyOrderNo">复制</text>
+          </view>
+        </view>
+        <view class="info-row">
+          <text class="label">下单时间</text>
+          <text class="value">{{order.createTime}}</text>
+        </view>
+        <view wx:if="{{order.payTime}}" class="info-row">
+          <text class="label">支付时间</text>
+          <text class="value">{{order.payTime}}</text>
+        </view>
+        <view wx:if="{{order.remark}}" class="info-row">
+          <text class="label">订单备注</text>
+          <text class="value">{{order.remark}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作按钮 -->
+  <view wx:if="{{!loading}}" class="footer-actions">
+    <view class="action-buttons">
+      <!-- 待付款状态 -->
+      <block wx:if="{{order.orderStatus === 0}}">
+        <button class="btn cancel-btn" bindtap="cancelOrder">取消订单</button>
+        <button class="btn pay-btn" bindtap="payOrder">去支付</button>
+      </block>
+
+      <!-- 待发货状态 -->
+      <block wx:if="{{order.orderStatus === 1}}">
+        <button class="btn contact-btn" bindtap="contactService">联系客服</button>
+      </block>
+
+      <!-- 待收货状态 -->
+      <block wx:if="{{order.orderStatus === 2}}">
+        <button class="btn contact-btn" bindtap="contactService">联系客服</button>
+        <button class="btn confirm-btn" bindtap="confirmReceipt">确认收货</button>
+      </block>
+
+      <!-- 已完成状态 -->
+      <block wx:if="{{order.orderStatus === 3}}">
+        <button class="btn contact-btn" bindtap="contactService">联系客服</button>
+      </block>
+    </view>
+  </view>
+</view>
