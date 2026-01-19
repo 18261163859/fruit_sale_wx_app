@@ -1,5 +1,5 @@
 // HTTP请求封装
-const BASE_URL = 'http://121.43.104.109:8000/api';
+const BASE_URL = 'https://www.zhiyeji.com/api';
 
 // 请求拦截器
 function request(options) {

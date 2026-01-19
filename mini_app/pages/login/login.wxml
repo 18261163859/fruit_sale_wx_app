@@ -7,32 +7,8 @@
   </view>
 
   <view class="login-content">
-    <view class="input-group">
-      <input
-        class="invite-input"
-        placeholder="请输入邀请码(可选)"
-        value="{{inviteCode}}"
-        bindinput="onInviteCodeInput"
-      />
-    </view>
-
-    <view class="input-group">
-      <input
-        class="phone-input"
-        type="number"
-        placeholder="请输入手机号(测试用)"
-        value="{{phone}}"
-        bindinput="onPhoneInput"
-        maxlength="11"
-      />
-    </view>
-
     <button class="login-btn" open-type="getPhoneNumber" bindgetphonenumber="onWxLoginWithPhone">
       微信授权登录
-    </button>
-
-    <button class="phone-login-btn" bindtap="onPhoneLogin">
-      手机号登录(测试)
     </button>
   </view>
 

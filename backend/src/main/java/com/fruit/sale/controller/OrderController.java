@@ -4,7 +4,11 @@ import com.fruit.sale.common.PageResult;
 import com.fruit.sale.common.Result;
 import com.fruit.sale.dto.CreateOrderDTO;
 import com.fruit.sale.dto.ShipOrderDTO;
+import com.fruit.sale.entity.OrderInfo;
+import com.fruit.sale.enums.OrderStatusEnum;
+import com.fruit.sale.mapper.UserInfoMapper;
 import com.fruit.sale.service.IOrderService;
+import com.fruit.sale.service.WeChatPayService;
 import com.fruit.sale.vo.OrderVO;
 import com.fruit.sale.vo.OrderStatisticsVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +17,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
  * 订单控制器
@@ -28,6 +34,12 @@ public class OrderController {
     @Autowired
     private IOrderService orderService;
 
+    @Autowired
+    private WeChatPayService weChatPayService;
+
+    @Autowired
+    private UserInfoMapper userInfoMapper;
+
     @Operation(summary = "创建订单", description = "用户下单购买商品")
     @PostMapping("/create")
     public Result<Long> createOrder(HttpServletRequest request,
@@ -37,11 +49,39 @@ public class OrderController {
         return Result.success("订单创建成功", orderId);
     }
 
-    @Operation(summary = "支付订单", description = "支付待付款订单")
+    @Operation(summary = "发起支付", description = "创建支付订单并返回微信支付参数")
     @PostMapping("/pay/{orderId}")
-    public Result<String> payOrder(@PathVariable Long orderId) {
-        orderService.payOrder(orderId);
-        return Result.success("支付成功");
+    public Result<Map<String, Object>> payOrder(HttpServletRequest request, @PathVariable Long orderId) {
+        Long userId = (Long) request.getAttribute("userId");
+
+        // 获取订单信息
+        OrderVO order = orderService.getOrderDetail(orderId);
+        if (order == null) {
+            return Result.error("订单不存在");
+        }
+
+        // 验证订单状态
+        if (order.getOrderStatus() != OrderStatusEnum.PENDING_PAYMENT) { // 0-待付款
+            return Result.error("订单状态异常，无法支付");
+        }
+
+        // 获取用户OpenID
+        com.fruit.sale.entity.UserInfo user = userInfoMapper.selectById(userId);
+        if (user == null || user.getOpenid() == null || user.getOpenid().isEmpty()) {
+            return Result.error("用户信息异常，请重新登录");
+        }
+
+        // 调用微信支付创建订单
+        String description = "订单号：" + order.getOrderNo();
+        Map<String, Object> payParams = weChatPayService.createPaymentOrder(
+                orderId,
+                order.getOrderNo(),
+                order.getPayAmount(),
+                description,
+                user.getOpenid()
+        );
+
+        return Result.success("获取支付参数成功", payParams);
     }
 
     @Operation(summary = "取消订单", description = "取消待付款订单")

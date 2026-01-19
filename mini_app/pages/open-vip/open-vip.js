@@ -1,6 +1,6 @@
 // pages/open-vip/open-vip.js
-const { createVipOrder, payVipOrder } = require('../../api/vip.js');
-const { getUserInfo } = require('../../api/user.js');
+const app = getApp();
+const { createVipOrder } = require('../../api/vip.js');
 
 Page({
   data: {
@@ -8,16 +8,27 @@ Page({
     paying: false,
     showPaymentModal: false,
     paymentType: 'wechat',
-    orderNo: ''
+    orderNo: '',
+    payParams: null,
+    isMockMode: true,
+    amount: '199.00'
   },
 
   async onLoad(options) {
     // 检查用户是否已经是VIP会员
     try {
-      const res = await getUserInfo();
-      if (res.code === 200 && res.data) {
+      const res = await wx.request({
+        url: `${app.globalData.baseUrl}/user/info`,
+        method: 'GET',
+        header: {
+          'Authorization': 'Bearer ' + wx.getStorageSync('token')
+        }
+      });
+
+      if (res.statusCode === 200 && res.data.code === 200) {
+        const userData = res.data.data;
         // 判断是否是VIP（基于 userType）
-        const isVip = res.data.userType === 2;
+        const isVip = userData.userType === 2;
 
         if (isVip) {
           wx.showToast({
@@ -43,16 +54,22 @@ Page({
 
     try {
       // 创建订单
-      const res = await createVipOrder();
+      const res = await wx.request({
+        url: `${app.globalData.baseUrl}/vip/order/create`,
+        method: 'POST',
+        header: {
+          'Authorization': 'Bearer ' + wx.getStorageSync('token')
+        }
+      });
 
-      if (res.code === 200 && res.data) {
+      if (res.statusCode === 200 && res.data.code === 200 && res.data.data) {
         this.setData({
-          orderNo: res.data.orderNo,
+          orderNo: res.data.data.orderNo,
           showPaymentModal: true
         });
       } else {
         wx.showToast({
-          title: res.message || '创建订单失败',
+          title: res.data.message || '创建订单失败',
           icon: 'none',
           duration: 2000
         });
@@ -81,7 +98,8 @@ Page({
   closePaymentModal() {
     this.setData({
       showPaymentModal: false,
-      paymentType: 'wechat'
+      paymentType: 'wechat',
+      payParams: null
     });
   },
 
@@ -92,36 +110,35 @@ Page({
     this.setData({ paying: true });
 
     try {
-      const res = await payVipOrder({
-        orderNo: this.data.orderNo,
-        payType: this.data.paymentType
+      // 先获取支付参数
+      const payParamsRes = await wx.request({
+        url: `${app.globalData.baseUrl}/pay/params/vip_${this.data.orderNo}`,
+        method: 'POST',
+        header: {
+          'Authorization': 'Bearer ' + wx.getStorageSync('token')
+        },
+        data: {
+          orderNo: this.data.orderNo,
+          amount: this.data.amount
+        }
       });
 
-      if (res.code === 200) {
-        // 支付成功
-        wx.showToast({
-          title: '开通成功',
-          icon: 'success',
-          duration: 2000
+      if (payParamsRes.statusCode === 200 && payParamsRes.data.code === 200) {
+        const payParams = payParamsRes.data.data;
+        this.setData({
+          payParams: payParams,
+          isMockMode: payParams.mockMode === true
         });
 
-        // 延迟返回上一页并刷新
-        setTimeout(() => {
-          wx.navigateBack({
-            delta: 1,
-            success: () => {
-              // 获取上一页实例并刷新数据
-              const pages = getCurrentPages();
-              const prevPage = pages[pages.length - 1];
-              if (prevPage && prevPage.loadUserInfo) {
-                prevPage.loadUserInfo();
-              }
-            }
-          });
-        }, 2000);
+        // 执行支付
+        if (payParams.mockMode === true) {
+          await this.mockVipPayment();
+        } else {
+          await this.realVipPayment(payParams);
+        }
       } else {
         wx.showToast({
-          title: res.message || '支付失败',
+          title: payParamsRes.data.message || '获取支付参数失败',
           icon: 'none',
           duration: 2000
         });
@@ -138,6 +155,118 @@ Page({
         paying: false,
         showPaymentModal: false
       });
+    }
+  },
+
+  // 模拟支付
+  mockVipPayment() {
+    return new Promise((resolve) => {
+      setTimeout(async () => {
+        // 调用后端确认支付
+        await this.confirmVipPaymentToBackend();
+        
+        wx.showToast({
+          title: '开通成功',
+          icon: 'success',
+          duration: 2000
+        });
+
+        setTimeout(() => {
+          wx.navigateBack({
+            delta: 1,
+            success: () => {
+              const pages = getCurrentPages();
+              const prevPage = pages[pages.length - 1];
+              if (prevPage && prevPage.loadUserInfo) {
+                prevPage.loadUserInfo();
+              }
+            }
+          });
+        }, 2000);
+
+        resolve();
+      }, 1500);
+    });
+  },
+
+  // 真实微信支付
+  realVipPayment(payParams) {
+    return new Promise((resolve, reject) => {
+      wx.requestPayment({
+        timeStamp: payParams.timeStamp,
+        nonceStr: payParams.nonceStr,
+        package: payParams.package,
+        signType: payParams.signType,
+        paySign: payParams.paySign,
+        success: async (res) => {
+          console.log('微信支付成功:', res);
+          // 调用后端确认支付
+          await this.confirmVipPaymentToBackend();
+          
+          wx.showToast({
+            title: '开通成功',
+            icon: 'success',
+            duration: 2000
+          });
+
+          setTimeout(() => {
+            wx.navigateBack({
+              delta: 1,
+              success: () => {
+                const pages = getCurrentPages();
+                const prevPage = pages[pages.length - 1];
+                if (prevPage && prevPage.loadUserInfo) {
+                  prevPage.loadUserInfo();
+                }
+              }
+            });
+          }, 2000);
+
+          resolve(res);
+        },
+        fail: (err) => {
+          console.error('微信支付失败:', err);
+          if (err.errMsg && err.errMsg.indexOf('cancel') > -1) {
+            wx.showToast({
+              title: '已取消支付',
+              icon: 'none'
+            });
+          } else {
+            wx.showToast({
+              title: '支付失败',
+              icon: 'none'
+            });
+          }
+          reject(err);
+        }
+      });
+    });
+  },
+
+  // 调用后端确认会员支付
+  async confirmVipPaymentToBackend() {
+    try {
+      const res = await wx.request({
+        url: `${app.globalData.baseUrl}/vip/order/pay`,
+        method: 'POST',
+        header: {
+          'Authorization': 'Bearer ' + wx.getStorageSync('token'),
+          'Content-Type': 'application/json'
+        },
+        data: {
+          orderNo: this.data.orderNo,
+          payType: 'wechat'
+        }
+      });
+
+      if (res.statusCode === 200 && res.data.code === 200) {
+        return Promise.resolve();
+      } else {
+        return Promise.reject(new Error(res.data.message || '确认支付失败'));
+      }
+    } catch (err) {
+      console.error('确认支付失败:', err);
+      return Promise.reject(err);
     }
   }
 });

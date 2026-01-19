@@ -25,7 +25,7 @@
 
   <!-- 支付提示 -->
   <view class="payment-tip">
-    <text class="tip-text">这是模拟支付，请选择操作</text>
+    <text class="tip-text">{{isMockMode ? '当前为测试模式，点击确认支付将模拟支付流程' : '即将跳转微信支付，请确认支付信息'}}</text>
   </view>
 
   <!-- 操作按钮 -->
@@ -33,14 +33,14 @@
     <button class="btn cancel-btn" bindtap="cancelPayment">
       取消支付
     </button>
-    <button class="btn pay-btn" bindtap="confirmPayment" disabled="{{loading}}">
+    <button class="btn pay-btn" bindtap="confirmPayment" disabled="{{loading || !payParams}}">
       {{loading ? '支付中...' : '确认支付'}}
     </button>
   </view>
 
   <!-- 底部说明 -->
   <view class="bottom-tip">
-    <text>• 点击"确认支付"订单将变为待发货状态</text>
+    <text>• 点击"确认支付"完成订单支付</text>
     <text>• 点击"取消支付"可稍后在订单列表中继续支付</text>
   </view>
 </view>
