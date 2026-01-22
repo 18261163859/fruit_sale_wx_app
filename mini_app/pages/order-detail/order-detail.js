@@ -148,6 +148,8 @@ Page({
     const { order } = this.data;
     const amount = order.payAmount || order.actualAmount || order.totalAmount;
 
+    console.log(order)
+
     // 跳转到支付页面
     wx.navigateTo({
       url: `/pages/payment/payment?orderId=${order.id}&orderNo=${order.orderNo}&amount=${amount}&createTime=${order.createTime}`

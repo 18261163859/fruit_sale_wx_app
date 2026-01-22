@@ -192,3 +192,17 @@ html.dark .page-title {
   align-items: center;
   height: 400px;
 }
+
+/* 修复 Element Plus MessageBox 确认框位置 */
+.el-overlay.is-message-box {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.el-message-box {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+}

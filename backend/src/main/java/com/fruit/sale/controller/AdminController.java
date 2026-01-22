@@ -9,6 +9,7 @@ import com.fruit.sale.mapper.UserInfoMapper;
 import com.fruit.sale.service.IAdminService;
 import com.fruit.sale.service.IProductService;
 import com.fruit.sale.vo.IntegralCardVO;
+import com.fruit.sale.vo.ProductVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -178,6 +179,13 @@ public class AdminController {
     public Result<String> createProduct(@RequestBody ProductAddDTO productAddDTO) {
         adminService.addProduct(productAddDTO);
         return Result.success("创建成功");
+    }
+
+    @Operation(summary = "获取商品详情（RESTful）", description = "获取指定商品的详细信息")
+    @GetMapping("/products/{id}")
+    public Result<ProductVO> getProductById(@PathVariable Long id) {
+        ProductVO product = productService.getProductDetail(id);
+        return Result.success(product);
     }
 
     @Operation(summary = "更新商品", description = "更新商品信息")

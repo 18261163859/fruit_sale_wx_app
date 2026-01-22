@@ -10,10 +10,22 @@ App({
     cartCount: 0,
     currentTheme: 'normal',  // 当前主题类型
     themeConfig: null,       // 当前主题配置
-    baseUrl: 'https://www.zhiyeji.com/api'  // 后端API地址
+    baseUrl: 'https://www.zhiyeji.com/api',  // 后端API地址
+    // baseUrl: 'http://127.0.0.1:8000/api'
   },
 
-  onLaunch() {
+  onLaunch(options) {
+    // 处理分享链接跳转
+    if (options.query && options.query.id) {
+      // 保存商品ID，登录后跳转
+      wx.setStorageSync('pendingProductId', options.query.id);
+    }
+
+    // 保存邀请码（从分享链接进入）
+    if (options.query && options.query.inviteCode) {
+      wx.setStorageSync('pendingInviteCode', options.query.inviteCode);
+    }
+
     // 初始化主题
     this.initTheme();
 

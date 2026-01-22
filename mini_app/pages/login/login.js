@@ -7,15 +7,33 @@ Page({
   data: {
     inviteCode: '',
     phone: '', // 手机号
-    userInfo: null // 存储用户头像和昵称
+    userInfo: null, // 存储用户头像和昵称
+    redirectUrl: '' // 登录后跳转的页面
   },
 
   onLoad(options) {
-    // 获取邀请码
-    if (options.inviteCode) {
+    // 获取邀请码（优先使用URL参数，其次使用缓存）
+    let inviteCode = options.inviteCode || wx.getStorageSync('pendingInviteCode') || '';
+    if (inviteCode) {
+      this.setData({ inviteCode });
+      // 清除缓存的邀请码
+      wx.removeStorageSync('pendingInviteCode');
+    }
+
+    // 保存跳转参数（如商品详情页）
+    if (options.productId) {
       this.setData({
-        inviteCode: options.inviteCode
+        redirectUrl: `/pages/product-detail/product-detail?id=${options.productId}`
       });
+    } else {
+      // 检查是否有待跳转的商品ID（从分享链接进入）
+      const pendingProductId = wx.getStorageSync('pendingProductId');
+      if (pendingProductId) {
+        this.setData({
+          redirectUrl: `/pages/product-detail/product-detail?id=${pendingProductId}`
+        });
+        wx.removeStorageSync('pendingProductId');
+      }
     }
   },
 
@@ -74,11 +92,22 @@ Page({
 
         showToast('登录成功', 'success');
 
-        // 跳转到首页
+        // 跳转到指定页面或首页
         setTimeout(() => {
-          wx.switchTab({
-            url: '/pages/index/index'
-          });
+          if (this.data.redirectUrl) {
+            wx.redirectTo({
+              url: this.data.redirectUrl,
+              fail: () => {
+                wx.switchTab({
+                  url: '/pages/index/index'
+                });
+              }
+            });
+          } else {
+            wx.switchTab({
+              url: '/pages/index/index'
+            });
+          }
         }, 1500);
       } else {
         showToast(res.message || '登录失败');
@@ -144,11 +173,22 @@ Page({
 
         showToast('登录成功', 'success');
 
-        // 跳转到首页
+        // 跳转到指定页面或首页
         setTimeout(() => {
-          wx.switchTab({
-            url: '/pages/index/index'
-          });
+          if (this.data.redirectUrl) {
+            wx.redirectTo({
+              url: this.data.redirectUrl,
+              fail: () => {
+                wx.switchTab({
+                  url: '/pages/index/index'
+                });
+              }
+            });
+          } else {
+            wx.switchTab({
+              url: '/pages/index/index'
+            });
+          }
         }, 1500);
       } else {
         showToast(res.message || '登录失败');

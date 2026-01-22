@@ -13,11 +13,13 @@ import com.fruit.sale.exception.BusinessException;
 import com.fruit.sale.mapper.ProductCategoryMapper;
 import com.fruit.sale.mapper.ProductInfoMapper;
 import com.fruit.sale.service.IProductService;
+import com.fruit.sale.service.ISystemConfigService;
 import com.fruit.sale.vo.ProductVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,6 +39,34 @@ public class ProductServiceImpl implements IProductService {
 
     @Autowired
     private ProductCategoryMapper productCategoryMapper;
+
+    @Autowired
+    private ISystemConfigService systemConfigService;
+
+    /**
+     * 获取VIP折扣率（例如：9.5折返回0.95）
+     */
+    private BigDecimal getVipDiscountRate() {
+        try {
+            String vipDiscount = systemConfigService.getConfigValue("vipDiscount");
+            if (vipDiscount != null) {
+                // 配置值是9.5表示95折，需要除以10得到0.95
+                return new BigDecimal(vipDiscount).divide(new BigDecimal("10"));
+            }
+        } catch (Exception e) {
+            log.error("获取VIP折扣配置失败", e);
+        }
+        // 默认95折
+        return new BigDecimal("0.95");
+    }
+
+    /**
+     * 计算并设置VIP价格
+     */
+    private void calculateVipPrice(ProductVO vo) {
+        BigDecimal vipDiscountRate = getVipDiscountRate();
+        vo.setVipPrice(vo.getPrice().multiply(vipDiscountRate));
+    }
 
     @Override
     public PageResult<ProductVO> pageQuery(ProductQueryDTO queryDTO) {
@@ -75,6 +105,8 @@ public class ProductServiceImpl implements IProductService {
             if (StrUtil.isNotBlank(product.getMainImage())) {
                 vo.setImages(new String[]{product.getMainImage()});
             }
+            // 计算VIP价格
+            calculateVipPrice(vo);
             return vo;
         }).collect(Collectors.toList());
 
@@ -90,7 +122,10 @@ public class ProductServiceImpl implements IProductService {
         }
 
         ProductVO vo = BeanUtil.copyProperties(product, ProductVO.class);
-        
+
+        // 手动映射 productDetail -> detail（字段名不一致）
+        vo.setDetail(product.getProductDetail());
+
         // 获取分类名称
         ProductCategory category = productCategoryMapper.selectById(product.getCategoryId());
         if (category != null) {
@@ -101,6 +136,9 @@ public class ProductServiceImpl implements IProductService {
         if (StrUtil.isNotBlank(product.getMainImage())) {
             vo.setImages(new String[]{product.getMainImage()});
         }
+
+        // 计算VIP价格
+        calculateVipPrice(vo);
 
         return vo;
     }
@@ -115,7 +153,11 @@ public class ProductServiceImpl implements IProductService {
                         .last("LIMIT 10"));
 
         return products.stream()
-                .map(product -> BeanUtil.copyProperties(product, ProductVO.class))
+                .map(product -> {
+                    ProductVO vo = BeanUtil.copyProperties(product, ProductVO.class);
+                    calculateVipPrice(vo);
+                    return vo;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -128,7 +170,11 @@ public class ProductServiceImpl implements IProductService {
                         .orderByDesc(ProductInfo::getSortOrder));
 
         return products.stream()
-                .map(product -> BeanUtil.copyProperties(product, ProductVO.class))
+                .map(product -> {
+                    ProductVO vo = BeanUtil.copyProperties(product, ProductVO.class);
+                    calculateVipPrice(vo);
+                    return vo;
+                })
                 .collect(Collectors.toList());
     }
 

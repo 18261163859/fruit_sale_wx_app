@@ -1,5 +1,9 @@
 // HTTP请求封装
-const BASE_URL = 'https://www.zhiyeji.com/api';
+// 从 app.js 的 globalData 中获取 baseUrl
+function getBaseUrl() {
+  const app = getApp();
+  return app.globalData.baseUrl || 'http://127.0.0.1:8000/api';
+}
 
 // 请求拦截器
 function request(options) {
@@ -16,7 +20,7 @@ function request(options) {
     const token = wx.getStorageSync('token');
 
     wx.request({
-      url: BASE_URL + options.url,
+      url: getBaseUrl() + options.url,
       method: options.method || 'GET',
       data: options.data || {},
       header: {
@@ -124,7 +128,7 @@ function uploadFile(filePath, options = {}) {
     const token = wx.getStorageSync('token');
 
     wx.uploadFile({
-      url: BASE_URL + (options.url || '/api/upload'),
+      url: getBaseUrl() + (options.url || '/api/upload'),
       filePath,
       name: options.name || 'file',
       formData: options.formData || {},

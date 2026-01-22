@@ -197,7 +197,7 @@ Page({
    */
   onShareAppMessage() {
     return {
-      title: '高端云南水果 - 邀请你成为我的下级代理',
+      title: '植野集 - 邀请你成为我的下级代理',
       path: `/pages/index/index?inviteCode=${this.data.userInfo.inviteCode}`,
       imageUrl: '/images/share-cover.png'
     };

@@ -79,9 +79,26 @@ public class OrderServiceImpl implements IOrderService {
     @Autowired
     private com.fruit.sale.service.ISystemConfigService systemConfigService;
 
+    /**
+     * 获取VIP折扣率（例如：9.5折返回0.95）
+     */
+    private BigDecimal getVipDiscountRate() {
+        try {
+            String vipDiscount = systemConfigService.getConfigValue("vipDiscount");
+            if (vipDiscount != null) {
+                // 配置值是9.5表示95折，需要除以10得到0.95
+                return new BigDecimal(vipDiscount).divide(new BigDecimal("10"));
+            }
+        } catch (Exception e) {
+            log.error("获取VIP折扣配置失败", e);
+        }
+        // 默认95折
+        return new BigDecimal("0.95");
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long createOrder(Long userId, CreateOrderDTO createOrderDTO) {
+    public OrderVO createOrder(Long userId, CreateOrderDTO createOrderDTO) {
         // 获取用户信息
         UserInfo user = userService.getById(userId);
         if (user == null) {
@@ -112,6 +129,9 @@ public class OrderServiceImpl implements IOrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
 
+        // 获取VIP折扣率
+        BigDecimal vipDiscountRate = getVipDiscountRate();
+
         for (CreateOrderDTO.OrderItemDTO itemDTO : createOrderDTO.getItems()) {
             ProductInfo product = productInfoMapper.selectById(itemDTO.getProductId());
             if (product == null) {
@@ -140,11 +160,11 @@ public class OrderServiceImpl implements IOrderService {
 
                 // VIP价格处理：通过vip_expire_time判断是否为星享会员
                 if (user.getVipExpireTime() != null && user.getVipExpireTime().isAfter(LocalDateTime.now())) {
-                    productPrice = spec.getVipPrice() != null ? spec.getVipPrice() : spec.getPrice().multiply(new BigDecimal("0.95"));
+                    productPrice = spec.getVipPrice() != null ? spec.getVipPrice() : spec.getPrice().multiply(vipDiscountRate);
                 }
             } else if (user.getVipExpireTime() != null && user.getVipExpireTime().isAfter(LocalDateTime.now())) {
-                // 没有规格且是VIP用户,使用95折
-                productPrice = product.getPrice().multiply(new BigDecimal("0.95"));
+                // 没有规格且是VIP用户,使用配置的折扣
+                productPrice = product.getPrice().multiply(vipDiscountRate);
             }
 
             if (availableStock < itemDTO.getQuantity()) {
@@ -243,7 +263,11 @@ public class OrderServiceImpl implements IOrderService {
             productInfoMapper.updateById(product);
         }
 
-        return order.getId();
+        OrderVO res = new OrderVO();
+        res.setId(order.getId());
+        res.setOrderNo(order.getOrderNo());
+
+        return res;
     }
 
     @Override
@@ -257,8 +281,6 @@ public class OrderServiceImpl implements IOrderService {
         if (order.getOrderStatus() != OrderStatusEnum.PENDING_PAYMENT) {
             throw new BusinessException("订单状态异常");
         }
-
-        // TODO: 调用微信支付
 
         // 更新订单状态
         order.setOrderStatus(OrderStatusEnum.PENDING_SHIPMENT);

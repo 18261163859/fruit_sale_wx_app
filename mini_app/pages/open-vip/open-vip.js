@@ -1,6 +1,7 @@
 // pages/open-vip/open-vip.js
 const app = getApp();
 const { createVipOrder } = require('../../api/vip.js');
+const { get } = require('../../utils/request.js');
 
 Page({
   data: {
@@ -11,10 +12,15 @@ Page({
     orderNo: '',
     payParams: null,
     isMockMode: true,
-    amount: '199.00'
+    amount: '199.00',
+    vipPrice: '199.00',
+    vipDurationDays: 365
   },
 
   async onLoad(options) {
+    // 加载VIP配置
+    await this.loadVipConfig();
+
     // 检查用户是否已经是VIP会员
     try {
       const res = await wx.request({
@@ -43,6 +49,27 @@ Page({
       }
     } catch (err) {
       console.error('检查VIP状态失败:', err);
+    }
+  },
+
+  // 加载VIP配置
+  async loadVipConfig() {
+    try {
+      const res = await get('/system-config/vip');
+
+      if (res.code === 200 && res.data) {
+        const vipPrice = res.data.vipPrice || '199.00';
+        const vipDurationDays = res.data.vipDurationDays || 365;
+
+        this.setData({
+          vipPrice: vipPrice,
+          amount: vipPrice,
+          vipDurationDays: vipDurationDays
+        });
+      }
+    } catch (err) {
+      console.error('加载VIP配置失败:', err);
+      // 使用默认值
     }
   },
 

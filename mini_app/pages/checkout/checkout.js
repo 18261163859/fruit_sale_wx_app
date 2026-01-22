@@ -171,9 +171,13 @@ Page({
     try {
       const res = await getShippingConfig();
       if (res.code === 200 && res.data) {
+        // 使用 ?? 运算符，只有 null/undefined 才使用默认值，0 是有效值
+        const defaultFreight = res.data.defaultFreight != null ? parseFloat(res.data.defaultFreight) : 15;
+        const freeFreightThreshold = res.data.freeFreightThreshold != null ? parseFloat(res.data.freeFreightThreshold) : 199;
+
         this.setData({
-          defaultFreight: parseFloat(res.data.defaultFreight) || 15,
-          freeFreightThreshold: parseFloat(res.data.freeFreightThreshold) || 199
+          defaultFreight,
+          freeFreightThreshold
         });
         // 重新计算运费
         if (this.data.totalAmount > 0) {
@@ -388,8 +392,10 @@ Page({
       const res = await createOrder(orderData);
 
       if (res.code === 200) {
-        const orderId = res.data;
-
+        const data = res.data;
+        const orderId = data.orderId;
+        const orderNo = data.orderNo;
+        console.log(orderId)
         // 如果是从购物车来的，删除已结算的商品
         if (this.data.from === 'cart' && this.data.cartIds.length > 0) {
           this.clearCartItems(this.data.cartIds);
@@ -404,7 +410,7 @@ Page({
         // 延迟跳转到支付页面
         setTimeout(() => {
           wx.redirectTo({
-            url: `/pages/payment/payment?orderId=${orderId}&amount=${this.data.actualAmount}&createTime=${new Date().toISOString()}`
+            url: `/pages/payment/payment?orderId=${orderId}&amount=${this.data.actualAmount}&orderNo=${orderNo}&createTime=${new Date().toISOString()}`
           });
         }, 1500);
       } else {

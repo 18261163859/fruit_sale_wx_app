@@ -35,6 +35,9 @@ public class SystemConfigServiceImpl implements ISystemConfigService {
     private static final String FREE_FREIGHT_THRESHOLD = "free_freight_threshold";
     private static final String SERVICE_PHONE = "servicePhone";
     private static final String SERVICE_WECHAT = "serviceWechat";
+    private static final String VIP_PRICE = "vipPrice";
+    private static final String VIP_DURATION_DAYS = "vip_duration_days";
+    private static final String VIP_DISCOUNT = "vipDiscount";
 
     @Override
     public Map<String, Object> getThemeConfig() {
@@ -122,11 +125,21 @@ public class SystemConfigServiceImpl implements ISystemConfigService {
 
         // 获取基础运费（默认15元）
         String defaultFreight = getConfigValue(DEFAULT_FREIGHT);
-        result.put("defaultFreight", defaultFreight != null ? new BigDecimal(defaultFreight) : new BigDecimal("15"));
+        // 只有当配置不存在时才使用默认值，0是有效值
+        if (defaultFreight != null && !defaultFreight.trim().isEmpty()) {
+            result.put("defaultFreight", new BigDecimal(defaultFreight));
+        } else if (defaultFreight != null && defaultFreight.trim().isEmpty()) {
+            // 空字符串视为未配置
+            result.put("defaultFreight", new BigDecimal("15"));
+        } else {
+            // null视为未配置
+            result.put("defaultFreight", new BigDecimal("15"));
+        }
 
         // 获取包邮门槛（默认199元）
         String freeFreightThreshold = getConfigValue(FREE_FREIGHT_THRESHOLD);
-        result.put("freeFreightThreshold", freeFreightThreshold != null ? new BigDecimal(freeFreightThreshold) : new BigDecimal("199"));
+        result.put("freeFreightThreshold", freeFreightThreshold != null && !freeFreightThreshold.trim().isEmpty()
+            ? new BigDecimal(freeFreightThreshold) : new BigDecimal("199"));
 
         return result;
     }
@@ -142,6 +155,25 @@ public class SystemConfigServiceImpl implements ISystemConfigService {
         // 获取客服微信
         String serviceWechat = getConfigValue(SERVICE_WECHAT);
         result.put("serviceWechat", serviceWechat != null ? serviceWechat : "");
+
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getVipConfig() {
+        Map<String, Object> result = new HashMap<>();
+
+        // 获取VIP价格（默认199元）
+        String vipPrice = getConfigValue(VIP_PRICE);
+        result.put("vipPrice", vipPrice != null ? new BigDecimal(vipPrice) : new BigDecimal("199.00"));
+
+        // 获取VIP时长（默认365天）
+        String vipDuration = getConfigValue(VIP_DURATION_DAYS);
+        result.put("vipDurationDays", vipDuration != null ? Integer.parseInt(vipDuration) : 365);
+
+        // 获取VIP折扣（默认9.5，即95折）
+        String vipDiscount = getConfigValue(VIP_DISCOUNT);
+        result.put("vipDiscount", vipDiscount != null ? new BigDecimal(vipDiscount) : new BigDecimal("9.5"));
 
         return result;
     }

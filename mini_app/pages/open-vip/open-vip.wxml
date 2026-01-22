@@ -10,7 +10,7 @@
       <text class="price-label">年费价格</text>
       <view class="price-value">
         <text class="price-symbol">¥</text>
-        <text class="price-number">199</text>
+        <text class="price-number">{{vipPrice}}</text>
         <text class="price-unit">/年</text>
       </view>
       <text class="price-desc">一次性支付，非充值</text>
@@ -28,8 +28,8 @@
         <text class="benefit-icon">💰</text>
       </view>
       <view class="benefit-content">
-        <text class="benefit-title">95折优惠</text>
-        <text class="benefit-desc">全场商品享受95折优惠</text>
+        <text class="benefit-title">专属优惠</text>
+        <text class="benefit-desc">全场商品享受优惠</text>
       </view>
     </view>
 
@@ -70,7 +70,7 @@
       <text>温馨提示:</text>
     </view>
     <view class="info-content">
-      <text>• 会员有效期:1年365天</text>
+      <text>• 会员有效期:{{vipDurationDays}}天</text>
       <text>• 开通后立即生效,不可退款</text>
       <text>• 专属权益立即享用</text>
       <text>• 到期后自动失效</text>
@@ -83,7 +83,7 @@
       <text class="total-label">支付金额</text>
       <view class="total-price">
         <text class="total-symbol">¥</text>
-        <text class="total-number">199.00</text>
+        <text class="total-number">{{amount}}</text>
       </view>
     </view>
     <button class="open-btn" bindtap="openVip" loading="{{loading}}">
@@ -117,7 +117,7 @@
       </view>
       <view class="modal-footer">
         <button class="confirm-pay-btn" bindtap="confirmPayment" loading="{{paying}}">
-          {{paying ? '支付中...' : '确认支付 ¥199.00'}}
+          {{paying ? '支付中...' : '确认支付 ¥' + amount}}
         </button>
       </view>
     </view>

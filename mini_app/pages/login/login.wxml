@@ -1,8 +1,8 @@
 <!--pages/login/login.wxml-->
 <view class="login-container">
   <view class="login-header">
-    <image class="logo" src="/images/logo.png" mode="aspectFit"></image>
-    <text class="app-name">高端云南水果</text>
+    <image class="logo" src="/images/tab/icon.png" mode="aspectFit"></image>
+    <text class="app-name">植野集</text>
     <text class="slogan">品质生活，从这里开始</text>
   </view>
 
@@ -10,12 +10,5 @@
     <button class="login-btn" open-type="getPhoneNumber" bindgetphonenumber="onWxLoginWithPhone">
       微信授权登录
     </button>
-  </view>
-
-  <view class="login-footer">
-    <text class="tips">登录即表示同意</text>
-    <text class="link">《用户协议》</text>
-    <text class="tips">和</text>
-    <text class="link">《隐私政策》</text>
   </view>
 </view>

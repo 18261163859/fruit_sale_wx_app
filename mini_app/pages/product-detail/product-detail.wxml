@@ -33,7 +33,11 @@
   <view class="product-detail">
     <view class="detail-title">商品详情</view>
     <view class="detail-content">
-      <text>{{product.description}}</text>
+      <!-- 富文本详情（支持图片） -->
+      <rich-text wx:if="{{product.detail}}" nodes="{{product.detail}}" class="rich-text-content"></rich-text>
+      <!-- 简介描述 -->
+      <text wx:elif="{{product.description}}">{{product.description}}</text>
+      <text wx:else class="no-detail">暂无详情</text>
     </view>
   </view>
 

@@ -56,3 +56,6 @@ logs/
 *.zip
 *.tar.gz
 *.rar
+
+*.pem
+*.p12

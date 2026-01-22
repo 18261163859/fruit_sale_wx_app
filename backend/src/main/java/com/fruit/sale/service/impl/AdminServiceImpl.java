@@ -11,6 +11,7 @@ import com.fruit.sale.enums.AgentApplyStatusEnum;
 import com.fruit.sale.exception.BusinessException;
 import com.fruit.sale.mapper.*;
 import com.fruit.sale.service.IAdminService;
+import com.fruit.sale.service.ISystemConfigService;
 import com.fruit.sale.vo.IntegralCardVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +59,34 @@ public class AdminServiceImpl implements IAdminService {
 
     @Autowired
     private ProductSpecMapper productSpecMapper;
+
+    @Autowired
+    private ISystemConfigService systemConfigService;
+
+    /**
+     * 获取VIP折扣率（例如：9.5折返回0.95）
+     */
+    private BigDecimal getVipDiscountRate() {
+        try {
+            String vipDiscount = systemConfigService.getConfigValue("vipDiscount");
+            if (vipDiscount != null) {
+                // 配置值是9.5表示95折，需要除以10得到0.95
+                return new BigDecimal(vipDiscount).divide(new BigDecimal("10"));
+            }
+        } catch (Exception e) {
+            log.error("获取VIP折扣配置失败", e);
+        }
+        // 默认95折
+        return new BigDecimal("0.95");
+    }
+
+    /**
+     * 计算并设置规格VIP价格
+     */
+    private void calculateSpecVipPrice(ProductSpecDTO dto) {
+        BigDecimal vipDiscountRate = getVipDiscountRate();
+        dto.setVipPrice(dto.getPrice().multiply(vipDiscountRate));
+    }
 
     @Override
     public PageResult<UserInfo> getUserList(Integer page, Integer pageSize, String keyword, Integer agentLevel, Integer vipLevel) {
@@ -239,6 +268,11 @@ public class AdminServiceImpl implements IAdminService {
     public void addProduct(ProductAddDTO productAddDTO) {
         ProductInfo product = BeanUtil.copyProperties(productAddDTO, ProductInfo.class);
 
+        // 手动处理字段名不一致的情况：DTO.detail -> Entity.productDetail
+        if (productAddDTO.getDetail() != null) {
+            product.setProductDetail(productAddDTO.getDetail());
+        }
+
         // 生成商品编号 格式: P + 时间戳后8位 + 4位随机数
         String productNo = "P" + System.currentTimeMillis() % 100000000 +
                           String.format("%04d", (int)(Math.random() * 10000));
@@ -258,6 +292,10 @@ public class AdminServiceImpl implements IAdminService {
         }
 
         BeanUtil.copyProperties(productUpdateDTO, product);
+        // 手动处理字段名不一致的情况：DTO.detail -> Entity.productDetail
+        if (productUpdateDTO.getDetail() != null) {
+            product.setProductDetail(productUpdateDTO.getDetail());
+        }
         productInfoMapper.updateById(product);
     }
 
@@ -583,6 +621,8 @@ public class AdminServiceImpl implements IAdminService {
         List<ProductSpecDTO> result = new ArrayList<>();
         for (ProductSpec spec : specs) {
             ProductSpecDTO dto = BeanUtil.copyProperties(spec, ProductSpecDTO.class);
+            // 计算VIP价格
+            calculateSpecVipPrice(dto);
             result.add(dto);
         }
         return result;

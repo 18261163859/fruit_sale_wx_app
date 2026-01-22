@@ -24,9 +24,15 @@ function getCustomerServiceConfig() {
   return get('/system-config/customer-service');
 }
 
+// 获取VIP配置
+function getVipConfig() {
+  return get('/system-config/vip');
+}
+
 module.exports = {
   getThemeConfig,
   getIntegralConfig,
   getShippingConfig,
-  getCustomerServiceConfig
+  getCustomerServiceConfig,
+  getVipConfig
 };

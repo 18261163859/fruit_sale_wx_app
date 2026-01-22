@@ -17,7 +17,7 @@ public interface IOrderService {
     /**
      * 创建订单
      */
-    Long createOrder(Long userId, CreateOrderDTO createOrderDTO);
+    OrderVO createOrder(Long userId, CreateOrderDTO createOrderDTO);
 
     /**
      * 支付订单

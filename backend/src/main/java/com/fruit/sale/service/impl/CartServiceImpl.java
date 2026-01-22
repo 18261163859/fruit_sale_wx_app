@@ -11,6 +11,7 @@ import com.fruit.sale.exception.BusinessException;
 import com.fruit.sale.mapper.ProductInfoMapper;
 import com.fruit.sale.mapper.ShoppingCartMapper;
 import com.fruit.sale.service.ICartService;
+import com.fruit.sale.service.ISystemConfigService;
 import com.fruit.sale.vo.CartVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,26 @@ public class CartServiceImpl implements ICartService {
 
     @Autowired
     private com.fruit.sale.mapper.ProductSpecMapper productSpecMapper;
+
+    @Autowired
+    private ISystemConfigService systemConfigService;
+
+    /**
+     * 获取VIP折扣率（例如：9.5折返回0.95）
+     */
+    private BigDecimal getVipDiscountRate() {
+        try {
+            String vipDiscount = systemConfigService.getConfigValue("vipDiscount");
+            if (vipDiscount != null) {
+                // 配置值是9.5表示95折，需要除以10得到0.95
+                return new BigDecimal(vipDiscount).divide(new BigDecimal("10"));
+            }
+        } catch (Exception e) {
+            log.error("获取VIP折扣配置失败", e);
+        }
+        // 默认95折
+        return new BigDecimal("0.95");
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -146,6 +167,9 @@ public class CartServiceImpl implements ICartService {
                         .orderByDesc(ShoppingCart::getCreateTime)
         );
 
+        // 获取VIP折扣率
+        BigDecimal vipDiscountRate = getVipDiscountRate();
+
         List<CartVO> result = new ArrayList<>();
         for (ShoppingCart cart : cartList) {
             ProductInfo product = productInfoMapper.selectById(cart.getProductId());
@@ -158,7 +182,7 @@ public class CartServiceImpl implements ICartService {
 
                 // 价格和库存根据规格设置
                 BigDecimal price = product.getPrice();
-                BigDecimal vipPrice = product.getPrice().multiply(new BigDecimal("0.95")); // 95折
+                BigDecimal vipPrice = product.getPrice().multiply(vipDiscountRate);
                 Integer stock = product.getStock();
 
                 // 如果有规格,使用规格的价格和库存
@@ -168,7 +192,7 @@ public class CartServiceImpl implements ICartService {
                         vo.setSpecId(spec.getId());
                         vo.setSpecName(spec.getSpecName());
                         price = spec.getPrice();
-                        vipPrice = spec.getVipPrice() != null ? spec.getVipPrice() : spec.getPrice().multiply(new BigDecimal("0.95"));
+                        vipPrice = spec.getPrice().multiply(vipDiscountRate);
                         stock = spec.getStock();
                     }
                 }

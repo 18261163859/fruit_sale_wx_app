@@ -193,5 +193,24 @@ Page({
     wx.navigateTo({
       url: `/pages/checkout/checkout?products=${productsStr}&from=product`
     });
+  },
+
+  // 分享给好友
+  onShareAppMessage() {
+    const { product } = this.data;
+    const app = getApp();
+    const userInfo = app.globalData.userInfo;
+
+    // 构建分享路径，携带商品ID和邀请码
+    let path = `/pages/product-detail/product-detail?id=${product.id}`;
+    if (userInfo && userInfo.inviteCode) {
+      path += `&inviteCode=${userInfo.inviteCode}`;
+    }
+
+    return {
+      title: product.productName || '植野集商品',
+      path: path,
+      imageUrl: product.mainImage
+    };
   }
 });

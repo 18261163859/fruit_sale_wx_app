@@ -7,7 +7,7 @@
       <input
         class="search-input"
         type="text"
-        placeholder="搜索高端水果"
+        placeholder="搜索商品"
         value="{{keyword}}"
         bindinput="onInput"
         bindconfirm="onSearchBtn"
@@ -47,7 +47,7 @@
     </view>
 
     <!-- 热门搜索 -->
-    <view class="hot-section">
+    <!-- <view class="hot-section">
       <view class="section-header">
         <text class="section-title">🔥 热门搜索</text>
       </view>
@@ -62,7 +62,7 @@
           {{item}}
         </text>
       </view>
-    </view>
+    </view> -->
   </view>
 
   <!-- 搜索结果 -->

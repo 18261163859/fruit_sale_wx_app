@@ -55,11 +55,11 @@
           <el-input v-model="form.serviceWechat" placeholder="请输入客服微信" style="width: 300px" />
         </el-form-item>
 
-        <el-form-item label="客服邮箱">
+        <!-- <el-form-item label="客服邮箱">
           <el-input v-model="form.serviceEmail" placeholder="请输入客服邮箱" style="width: 300px" />
-        </el-form-item>
+        </el-form-item> -->
 
-        <el-divider content-position="left">其他配置</el-divider>
+        <!-- <el-divider content-position="left">其他配置</el-divider>
 
         <el-form-item label="网站名称">
           <el-input v-model="form.siteName" placeholder="请输入网站名称" style="width: 300px" />
@@ -73,7 +73,7 @@
             placeholder="请输入网站公告"
             style="width: 600px"
           />
-        </el-form-item>
+        </el-form-item> -->
 
         <el-divider content-position="left">主题配置</el-divider>
 

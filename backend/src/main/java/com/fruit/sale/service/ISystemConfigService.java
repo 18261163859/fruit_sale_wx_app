@@ -55,4 +55,10 @@ public interface ISystemConfigService {
      * @return 客服配置信息
      */
     Map<String, Object> getCustomerServiceConfig();
+
+    /**
+     * 获取VIP配置
+     * @return VIP配置信息
+     */
+    Map<String, Object> getVipConfig();
 }

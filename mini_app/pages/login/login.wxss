@@ -17,8 +17,6 @@
 .logo {
   width: 160rpx;
   height: 160rpx;
-  border-radius: 80rpx;
-  background-color: #fff;
   margin-bottom: 30rpx;
 }
 

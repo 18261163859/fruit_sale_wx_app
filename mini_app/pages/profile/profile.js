@@ -2,7 +2,7 @@
 const { getUserInfo } = require('../../api/user.js');
 const { getOrderStatistics } = require('../../api/order.js');
 const { getCommissionStats } = require('../../api/agent.js');
-const { getCustomerServiceConfig } = require('../../api/config.js');
+const { getCustomerServiceConfig, getVipConfig } = require('../../api/config.js');
 const { applyTheme } = require('../../utils/theme.js');
 const { getUserInfo: getStorageUserInfo, setUserInfo: setStorageUserInfo, clearUserInfo } = require('../../utils/storage.js');
 
@@ -23,7 +23,8 @@ Page({
     customerServiceConfig: {
       servicePhone: '',
       serviceWechat: ''
-    }
+    },
+    vipDiscount: 9.5
   },
 
   onLoad() {
@@ -32,6 +33,7 @@ Page({
     this.loadOrderStats();
     this.loadAgentStats();
     this.loadCustomerServiceConfig();
+    this.loadVipConfig();
   },
 
   onShow() {
@@ -39,6 +41,7 @@ Page({
     this.loadUserInfo();
     this.loadOrderStats();
     this.loadAgentStats();
+    this.loadVipConfig();
   },
 
   // 初始化主题
@@ -123,6 +126,21 @@ Page({
       }
     } catch (err) {
       console.error('加载客服配置失败:', err);
+    }
+  },
+
+  async loadVipConfig() {
+    try {
+      const res = await getVipConfig();
+      console.log("返回vip配置")
+      console.log(res)
+      if ((res.code === 200) && res.data) {
+        this.setData({
+          vipDiscount: res.data.vipDiscount || 9.5
+        });
+      }
+    } catch (err) {
+      console.error('加载VIP配置失败:', err);
     }
   },
 
@@ -310,6 +328,28 @@ Page({
     this.setData({
       showInviteCodeDialog: true,
       inputInviteCode: ''
+    });
+  },
+
+  // 复制我的邀请码
+  copyMyInviteCode() {
+    const inviteCode = this.data.userInfo.inviteCode;
+    if (!inviteCode) {
+      wx.showToast({
+        title: '暂无邀请码',
+        icon: 'none'
+      });
+      return;
+    }
+
+    wx.setClipboardData({
+      data: inviteCode,
+      success: () => {
+        wx.showToast({
+          title: '邀请码已复制',
+          icon: 'success'
+        });
+      }
     });
   },
 

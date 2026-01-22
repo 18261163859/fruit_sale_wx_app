@@ -51,11 +51,11 @@
             {{ formatMoney(row.price) }}
           </template>
         </el-table-column>
-        <el-table-column prop="vipPrice" label="VIP价" width="100">
+        <!-- <el-table-column prop="vipPrice" label="VIP价" width="100">
           <template #default="{ row }">
             {{ formatMoney(row.vipPrice) }}
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column prop="stock" label="库存" width="100" />
         <el-table-column prop="sales" label="销量" width="100">
           <template #default="{ row }">
@@ -142,11 +142,11 @@
               <el-input-number v-model="form.price" :min="0" :precision="2" style="width: 100%" />
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <!-- <el-col :span="8">
             <el-form-item label="VIP价格" prop="vipPrice">
               <el-input-number v-model="form.vipPrice" :min="0" :precision="2" style="width: 100%" />
             </el-form-item>
-          </el-col>
+          </el-col> -->
           <el-col :span="8">
             <el-form-item label="库存" prop="stock">
               <el-input-number v-model="form.stock" :min="0" style="width: 100%" />
@@ -315,6 +315,7 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import type Quill from 'quill'
 import {
   getProductList,
+  getProductDetail,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -543,9 +544,34 @@ const handleAdd = () => {
 }
 
 // 编辑商品
-const handleEdit = (row: Product) => {
+const handleEdit = async (row: Product) => {
   isEdit.value = true
-  Object.assign(form, row)
+  try {
+    // 调用详情接口获取完整数据（包括 detail）
+    const res = await getProductDetail(row.id)
+    if (res.code === 200 || res.code === 0) {
+      const product = res.data
+      // 映射后端字段到前端表单
+      Object.assign(form, {
+        id: product.id,
+        name: product.productName,
+        categoryId: product.categoryId,
+        cover: product.mainImage,
+        price: product.price,
+        vipPrice: product.vipPrice,
+        stock: product.stock,
+        description: product.description,
+        detail: product.detail || ''
+      })
+    } else {
+      // 如果接口失败，使用列表数据
+      Object.assign(form, row)
+    }
+  } catch (error) {
+    console.error('获取商品详情失败:', error)
+    // 降级使用列表数据
+    Object.assign(form, row)
+  }
   dialogVisible.value = true
 }
 

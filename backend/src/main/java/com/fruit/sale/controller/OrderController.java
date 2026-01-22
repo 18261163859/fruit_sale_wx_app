@@ -18,6 +18,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -42,11 +43,15 @@ public class OrderController {
 
     @Operation(summary = "创建订单", description = "用户下单购买商品")
     @PostMapping("/create")
-    public Result<Long> createOrder(HttpServletRequest request,
+    public Result<Map<String,Object>> createOrder(HttpServletRequest request,
                                     @Valid @RequestBody CreateOrderDTO createOrderDTO) {
         Long userId = (Long) request.getAttribute("userId");
-        Long orderId = orderService.createOrder(userId, createOrderDTO);
-        return Result.success("订单创建成功", orderId);
+        OrderVO order = orderService.createOrder(userId, createOrderDTO);
+        Map<String, Object> resMap = new HashMap<>();
+        resMap.put("orderId", order.getId());
+        resMap.put("orderNo", order.getOrderNo());
+
+        return Result.success(resMap);
     }
 
     @Operation(summary = "发起支付", description = "创建支付订单并返回微信支付参数")

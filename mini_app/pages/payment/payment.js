@@ -1,5 +1,6 @@
 // pages/payment/payment.js
 const app = getApp();
+const { post } = require('../../utils/request.js');
 
 Page({
   data: {
@@ -57,39 +58,30 @@ Page({
   // 获取支付参数
   async getPayParams() {
     try {
-      wx.showLoading({ title: '获取支付参数...' });
+      console.log(this.data.orderNo)
+      const res = await post(`/pay/params/${this.data.orderId}`, {
+        orderId: this.data.orderId,
+        orderNo: this.data.orderNo,
+        amount: this.data.amount
+      }, { hideLoading: false });
 
-      const res = await wx.request({
-        url: `${app.globalData.baseUrl}/pay/params/${this.data.orderId}`,
-        method: 'POST',
-        header: {
-          'Authorization': 'Bearer ' + wx.getStorageSync('token')
-        },
-        data: {
-          orderId: this.data.orderId,
-          orderNo: this.data.orderNo,
-          amount: this.data.amount
-        }
-      });
+      console.log('支付参数响应:', res);
 
-      wx.hideLoading();
-
-      if (res.statusCode === 200 && res.data.code === 200) {
+      if (res.code === 200 && res.data) {
         this.setData({
-          payParams: res.data.data,
-          isMockMode: res.data.data.mockMode === true
+          payParams: res.data,
+          isMockMode: res.data.mockMode === true
         });
       } else {
         wx.showToast({
-          title: res.data.message || '获取支付参数失败',
+          title: res.message || '获取支付参数失败',
           icon: 'none'
         });
       }
     } catch (err) {
-      wx.hideLoading();
       console.error('获取支付参数失败:', err);
       wx.showToast({
-        title: '网络错误',
+        title: err.message || '网络错误',
         icon: 'none'
       });
     }
@@ -228,18 +220,20 @@ Page({
   // 调用后端确认支付
   async confirmPaymentToBackend() {
     try {
-      const res = await wx.request({
-        url: `${app.globalData.baseUrl}/pay/confirm/${this.data.orderId}`,
-        method: 'POST',
-        header: {
-          'Authorization': 'Bearer ' + wx.getStorageSync('token')
-        }
-      });
+      // 使用封装好的 post 方法，而不是原生的 wx.request
+      // 1. 不需要手动拼接 app.globalData.baseUrl (封装里通常有)
+      // 2. 不需要手动加 header Token (封装里通常有)
+      // 3. post 方法通常直接返回 res.data 部分（根据你 getPayParams 的写法推断）
+      
+      const res = await post(`/pay/confirm/${this.data.orderId}`, {}, { hideLoading: true });
+      
+      console.log('确认支付响应:', res);
 
-      if (res.statusCode === 200 && res.data.code === 200) {
-        return Promise.resolve();
+      // 根据你 getPayParams 的逻辑，封装后的 res 直接就是后端返回的 JSON 对象
+      if (res.code === 200) {
+        return Promise.resolve(res);
       } else {
-        return Promise.reject(new Error(res.data.message || '确认支付失败'));
+        return Promise.reject(new Error(res.message || '确认支付失败'));
       }
     } catch (err) {
       console.error('确认支付失败:', err);

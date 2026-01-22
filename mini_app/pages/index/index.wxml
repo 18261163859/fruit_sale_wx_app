@@ -4,7 +4,7 @@
   <view class="search-bar" style="background-color: {{themeConfig.primary}}">
     <view class="search-input" bindtap="goToSearch">
       <icon class="search-icon" type="search" size="16" color="#999"></icon>
-      <text class="search-placeholder">搜索高端水果</text>
+      <text class="search-placeholder">搜索商品</text>
     </view>
   </view>
 

@@ -76,4 +76,9 @@ public class ProductInfo extends BaseEntity {
      * 是否推荐（0-否 1-是）
      */
     private Integer isRecommend;
+
+    /**
+     * 商品详情（富文本）
+     */
+    private String productDetail;
 }

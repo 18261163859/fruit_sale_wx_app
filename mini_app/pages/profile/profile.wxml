@@ -42,7 +42,7 @@
       </view>
       <view class="member-benefits">
         <view class="benefit-item">
-          <text class="benefit-value">95折</text>
+          <text class="benefit-value">{{vipDiscount}}折</text>
           <text class="benefit-label">专享折扣</text>
         </view>
         <view class="benefit-divider"></view>
@@ -57,7 +57,7 @@
     <view wx:else class="member-card normal-user" bindtap="goToOpenVip">
       <view class="member-info">
         <text class="member-title">开通星享会员</text>
-        <text class="member-desc">95折优惠 + 专属服务</text>
+        <text class="member-desc">{{vipDiscount}}折优惠 + 专属服务</text>
       </view>
       <view class="open-btn">
         <text>立即开通</text>
@@ -159,6 +159,18 @@
       <view class="menu-right">
         <text class="menu-value">{{userInfo.integralBalance || 0}}</text>
         <text class="arrow">></text>
+      </view>
+    </view>
+
+    <!-- 我的邀请码（显示用户自己的邀请码） -->
+    <view wx:if="{{userInfo.inviteCode}}" class="menu-item" bindtap="copyMyInviteCode">
+      <view class="menu-left">
+        <text class="menu-icon">🎁</text>
+        <text class="menu-title">我的邀请码</text>
+      </view>
+      <view class="menu-right">
+        <text class="menu-value invite-code-value">{{userInfo.inviteCode}}</text>
+        <text class="menu-tip copy-tip">点击复制</text>
       </view>
     </view>
 

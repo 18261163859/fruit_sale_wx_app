@@ -716,3 +716,18 @@
 .menu-value.bound {
   color: #52c41a;
 }
+
+/* 邀请码样式 */
+.invite-code-value {
+  font-family: 'Courier New', monospace;
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #1989fa;
+  letter-spacing: 2rpx;
+}
+
+.copy-tip {
+  font-size: 22rpx;
+  color: #999;
+  margin-left: 8rpx;
+}

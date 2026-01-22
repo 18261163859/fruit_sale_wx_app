@@ -258,10 +258,20 @@ public class UserServiceImpl implements IUserService {
                 user.setTotalConsumeAmount(BigDecimal.ZERO);
                 user.setIntegralBalance(0);
                 user.setVipExpireTime(null); // 非星享会员
-                user.setStatus(0);
+                user.setStatus(1); // 默认启用
+
+                // 生成唯一邀请码：6位大写字母+数字
+                String inviteCode = generateInviteCode();
+                user.setInviteCode(inviteCode);
+
                 userInfoMapper.insert(user);
-                log.info("创建新用户，手机号={}，用户ID={}，邀请人ID={}", phone, user.getId(), inviterId);
+                log.info("创建新用户，手机号={}，用户ID={}，邀请码={}，邀请人ID={}", phone, user.getId(), inviteCode, inviterId);
             }
+        }
+
+        // 检查用户状态
+        if (user.getStatus() != null && user.getStatus() == 0) {
+            throw new BusinessException("账号已被禁用，请联系客服");
         }
 
         // 生成Token
@@ -512,5 +522,31 @@ public class UserServiceImpl implements IUserService {
         userInfoMapper.updateById(currentUser);
 
         log.info("用户{}成功绑定邀请人{}的邀请码{}", userId, inviter.getId(), inviteCode);
+    }
+
+    /**
+     * 生成唯一邀请码
+     */
+    private String generateInviteCode() {
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 去除易混淆字符
+        StringBuilder code = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+
+        // 生成6位邀请码
+        for (int i = 0; i < 6; i++) {
+            code.append(chars.charAt(random.nextInt(chars.length())));
+        }
+
+        // 检查是否重复
+        String inviteCode = code.toString();
+        UserInfo existingUser = userInfoMapper.selectOne(new LambdaQueryWrapper<UserInfo>()
+                .eq(UserInfo::getInviteCode, inviteCode));
+
+        // 如果重复，递归生成新的
+        if (existingUser != null) {
+            return generateInviteCode();
+        }
+
+        return inviteCode;
     }
 }

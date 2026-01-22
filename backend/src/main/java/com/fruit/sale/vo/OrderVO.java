@@ -33,6 +33,15 @@ public class OrderVO {
     @Schema(description = "收货人手机号")
     private String receiverPhone;
 
+    @Schema(description = "收货省份")
+    private String receiverProvince;
+
+    @Schema(description = "收货城市")
+    private String receiverCity;
+
+    @Schema(description = "收货区县")
+    private String receiverDistrict;
+
     @Schema(description = "收货地址")
     private String receiverAddress;
 

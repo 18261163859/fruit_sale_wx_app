@@ -111,7 +111,9 @@
         <el-descriptions-item label="订单号" :span="2">{{ currentOrder.orderNo }}</el-descriptions-item>
         <el-descriptions-item label="收货人">{{ currentOrder.receiverName }}</el-descriptions-item>
         <el-descriptions-item label="联系电话">{{ currentOrder.receiverPhone }}</el-descriptions-item>
-        <el-descriptions-item label="收货地址" :span="2">{{ currentOrder.receiverAddress }}</el-descriptions-item>
+        <el-descriptions-item label="收货地址" :span="2">
+          {{ [currentOrder.receiverProvince, currentOrder.receiverCity, currentOrder.receiverDistrict, currentOrder.receiverAddress].filter(Boolean).join('') }}
+        </el-descriptions-item>
 
         <el-descriptions-item label="商品列表" :span="2">
           <div v-if="currentOrder.items && currentOrder.items.length > 0" style="display: flex; flex-direction: column; gap: 12px">

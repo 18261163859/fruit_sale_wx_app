@@ -50,4 +50,11 @@ public class SystemConfigController {
         Map<String, Object> config = systemConfigService.getCustomerServiceConfig();
         return Result.success(config);
     }
+
+    @Operation(summary = "获取VIP配置", description = "获取VIP价格和时长")
+    @GetMapping("/vip")
+    public Result<Map<String, Object>> getVipConfig() {
+        Map<String, Object> config = systemConfigService.getVipConfig();
+        return Result.success(config);
+    }
 }
