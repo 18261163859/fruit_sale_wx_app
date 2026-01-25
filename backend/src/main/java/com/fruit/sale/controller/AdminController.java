@@ -296,6 +296,13 @@ public class AdminController {
         return Result.success("操作成功");
     }
 
+    @Operation(summary = "撤回发货", description = "撤回已发货订单，将状态回退到待发货")
+    @PostMapping("/orders/{id}/cancel-shipment")
+    public Result<String> cancelShipment(@PathVariable Long id) {
+        orderService.cancelShipment(id);
+        return Result.success("撤回发货成功");
+    }
+
     @Operation(summary = "添加轮播图", description = "添加新的轮播图")
     @PostMapping("/banner/add")
     public Result<String> addBanner(@RequestBody BannerAddDTO bannerAddDTO) {

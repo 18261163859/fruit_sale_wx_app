@@ -667,4 +667,33 @@ public class OrderServiceImpl implements IOrderService {
 
         return vo;
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelShipment(Long orderId) {
+        OrderInfo order = orderInfoMapper.selectById(orderId);
+        if (order == null) {
+            throw new BusinessException(ResultCode.ORDER_NOT_EXIST);
+        }
+
+        if (order.getOrderStatus() != OrderStatusEnum.SHIPPED) {
+            throw new BusinessException("只有已发货的订单才能撤回发货");
+        }
+
+        // 物理删除物流记录（因为order_id有唯一键约束，需要删除以允许重新发货）
+        OrderLogistics logistics = orderLogisticsMapper.selectOne(
+                new LambdaQueryWrapper<OrderLogistics>()
+                        .eq(OrderLogistics::getOrderId, orderId));
+
+        if (logistics != null) {
+            orderLogisticsMapper.deleteById(logistics.getId());
+            log.info("撤回发货-已删除物流记录: orderId={}, expressNo={}", orderId, logistics.getExpressNo());
+        }
+
+        // 回退订单状态到待发货
+        order.setOrderStatus(OrderStatusEnum.PENDING_SHIPMENT);
+        orderInfoMapper.updateById(order);
+
+        log.info("撤回发货成功: orderId={}, orderNo={}", orderId, order.getOrderNo());
+    }
 }

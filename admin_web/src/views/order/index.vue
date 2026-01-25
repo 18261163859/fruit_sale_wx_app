@@ -79,16 +79,17 @@
             {{ formatDate(row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
             <div class="table-actions">
               <el-button type="info" size="small" @click="handleViewDetail(row)">详情</el-button>
               <el-button v-if="getStatusCode(row.orderStatus) === 1" type="primary" size="small" @click="handleShip(row)">
                 发货
               </el-button>
-              <el-button v-if="getStatusCode(row.orderStatus) === 2" type="success" size="small" @click="handleFinish(row)">
-                确认完成
-              </el-button>
+              <template v-if="getStatusCode(row.orderStatus) === 2">
+                <el-button type="success" size="small" @click="handleFinish(row)">确认完成</el-button>
+                <el-button type="warning" size="small" @click="handleCancelShipment(row)">撤回发货</el-button>
+              </template>
             </div>
           </template>
         </el-table-column>
@@ -207,7 +208,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
-import { getOrderList, getOrderDetail, shipOrder, finishOrder, exportOrders } from '@/api/order'
+import { getOrderList, getOrderDetail, shipOrder, finishOrder, cancelShipment, exportOrders } from '@/api/order'
 import { formatMoney, formatDate, getImageUrl, downloadFile } from '@/utils'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import type { Order } from '@/types'
@@ -382,6 +383,25 @@ const handleFinish = async (row: Order) => {
   } catch (error) {
     if (error !== 'cancel') {
       console.error('操作失败:', error)
+    }
+  }
+}
+
+// 撤回发货
+const handleCancelShipment = async (row: Order) => {
+  try {
+    await ElMessageBox.confirm('确定要撤回发货吗？订单状态将回退到待发货。', '撤回发货', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+
+    await cancelShipment(row.id)
+    ElMessage.success('撤回发货成功')
+    loadData()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('撤回发货失败:', error)
     }
   }
 }

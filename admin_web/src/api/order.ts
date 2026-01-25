@@ -30,6 +30,13 @@ export function finishOrder(id: number) {
 }
 
 /**
+ * 撤回发货
+ */
+export function cancelShipment(id: number) {
+  return request.post<ApiResponse>(`/admin/orders/${id}/cancel-shipment`)
+}
+
+/**
  * 导出订单
  */
 export function exportOrders(params: { status?: number; startDate?: string; endDate?: string }) {

@@ -70,6 +70,11 @@ public interface IOrderService {
     PageResult<OrderVO> getShippedOrders(Long current, Long size);
 
     /**
+     * 撤回发货
+     */
+    void cancelShipment(Long orderId);
+
+    /**
      * 获取用户订单统计
      */
     OrderStatisticsVO getUserOrderStatistics(Long userId);
