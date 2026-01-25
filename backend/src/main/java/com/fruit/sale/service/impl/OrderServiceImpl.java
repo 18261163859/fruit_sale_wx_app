@@ -139,10 +139,14 @@ public class OrderServiceImpl implements IOrderService {
             }
 
             // 价格、库存根据规格确定
-            BigDecimal productPrice = product.getPrice();
+            BigDecimal specOriginalPrice = product.getPrice(); // 商品原价
+            BigDecimal specVipPrice = null; // 规格的VIP价格
             Integer availableStock = product.getStock();
             String specName = null;
             Long specId = null;
+
+            log.info("创建订单-处理商品: productId={}, specId={}, 商品原价={}", 
+                    product.getId(), itemDTO.getSpecId(), specOriginalPrice);
 
             // 如果指定了规格,使用规格的价格和库存
             if (itemDTO.getSpecId() != null) {
@@ -155,23 +159,33 @@ public class OrderServiceImpl implements IOrderService {
                 }
                 specId = spec.getId();
                 specName = spec.getSpecName();
-                productPrice = spec.getPrice();
+                specOriginalPrice = spec.getPrice(); // 规格原价
                 availableStock = spec.getStock();
 
-                // VIP价格处理：通过vip_expire_time判断是否为星享会员
-                if (user.getVipExpireTime() != null && user.getVipExpireTime().isAfter(LocalDateTime.now())) {
-                    productPrice = spec.getVipPrice() != null ? spec.getVipPrice() : spec.getPrice().multiply(vipDiscountRate);
+                log.info("创建订单-规格信息: specId={}, specName={}, 规格原价={}, 规格VIP价={}", 
+                        specId, specName, specOriginalPrice, specVipPrice);
+            }
+
+            // 计算实际成交价
+            BigDecimal actualPrice = specOriginalPrice; // 默认使用原价
+            boolean isVipUser = user.getUserType()==2 && user.getVipExpireTime() != null && user.getVipExpireTime().isAfter(LocalDateTime.now());
+            
+            if (isVipUser) {
+                if (specVipPrice != null && specVipPrice.compareTo(BigDecimal.ZERO) > 0) {
+                    actualPrice = specVipPrice; // 使用规格的VIP价
+                } else {
+                    actualPrice = specOriginalPrice.multiply(vipDiscountRate); // 使用折扣价
                 }
-            } else if (user.getVipExpireTime() != null && user.getVipExpireTime().isAfter(LocalDateTime.now())) {
-                // 没有规格且是VIP用户,使用配置的折扣
-                productPrice = product.getPrice().multiply(vipDiscountRate);
+                log.info("创建订单-VIP用户，最终成交价: {}", actualPrice);
+            } else {
+                log.info("创建订单-非VIP用户，使用原价: {}", actualPrice);
             }
 
             if (availableStock < itemDTO.getQuantity()) {
                 throw new BusinessException(product.getProductName() + " 库存不足");
             }
 
-            BigDecimal subtotal = productPrice.multiply(new BigDecimal(itemDTO.getQuantity()));
+            BigDecimal subtotal = actualPrice.multiply(new BigDecimal(itemDTO.getQuantity()));
             totalAmount = totalAmount.add(subtotal);
 
             OrderItem orderItem = new OrderItem();
@@ -181,10 +195,14 @@ public class OrderServiceImpl implements IOrderService {
             orderItem.setSpecName(specName);
             orderItem.setProductName(product.getProductName());
             orderItem.setProductImage(product.getMainImage());
-            orderItem.setProductPrice(product.getPrice()); // 原价
-            orderItem.setActualPrice(productPrice); // 实际成交价(VIP折扣后)
+            orderItem.setProductPrice(specOriginalPrice); // 规格原价（或商品原价）
+            orderItem.setActualPrice(actualPrice); // 实际成交价(VIP折扣后)
             orderItem.setQuantity(itemDTO.getQuantity());
             orderItem.setSubtotalAmount(subtotal);
+            
+            log.info("创建订单-订单明细: productName={}, 规格/商品原价={}, 实际成交价={}, 小计={}", 
+                    product.getProductName(), specOriginalPrice, actualPrice, subtotal);
+            
             orderItems.add(orderItem);
         }
 
@@ -263,9 +281,34 @@ public class OrderServiceImpl implements IOrderService {
             productInfoMapper.updateById(product);
         }
 
+        // 构建完整返回对象
         OrderVO res = new OrderVO();
         res.setId(order.getId());
         res.setOrderNo(order.getOrderNo());
+        res.setTotalAmount(order.getTotalAmount());
+        res.setDiscountAmount(order.getDiscountAmount());
+        res.setIntegralAmount(order.getIntegralDeductAmount());
+        res.setFreightAmount(order.getFreightAmount());
+        res.setPayAmount(order.getActualAmount());
+        res.setUseIntegral(order.getIntegralUsed());
+        res.setOrderStatus(order.getOrderStatus());
+        res.setCreateTime(order.getCreateTime());
+
+        // 构建订单明细VO
+        List<OrderVO.OrderItemVO> itemVOs = orderItems.stream()
+                .map(item -> {
+                    OrderVO.OrderItemVO itemVO = new OrderVO.OrderItemVO();
+                    itemVO.setProductId(item.getProductId());
+                    itemVO.setProductName(item.getProductName());
+                    itemVO.setProductImage(item.getProductImage());
+                    itemVO.setProductPrice(item.getActualPrice()); // 使用实际成交价
+                    itemVO.setQuantity(item.getQuantity());
+                    itemVO.setSubtotalAmount(item.getSubtotalAmount());
+                    itemVO.setSpecName(item.getSpecName()); // 添加规格名称
+                    return itemVO;
+                })
+                .collect(Collectors.toList());
+        res.setItems(itemVOs);
 
         return res;
     }
@@ -370,13 +413,17 @@ public class OrderServiceImpl implements IOrderService {
     private void settleIntegral(OrderInfo order) {
         UserInfo user = userService.getById(order.getUserId());
         if (user == null) {
+            log.error("结算积分失败：用户不存在，orderNo={}", order.getOrderNo());
             return;
         }
 
-        // TODO: 从系统配置获取积分比例
+        // 积分按实付金额计算（已包含VIP折扣）
         Integer integralReward = order.getActualAmount().intValue();
         Integer balanceBefore = user.getIntegralBalance();
         Integer balanceAfter = balanceBefore + integralReward;
+
+        log.info("结算积分: orderNo={}, 实付金额={}, 获得积分={}, 变更前积分={}, 变更后积分={}",
+                order.getOrderNo(), order.getActualAmount(), integralReward, balanceBefore, balanceAfter);
 
         user.setIntegralBalance(balanceAfter);
         userInfoMapper.updateById(user);
@@ -391,6 +438,8 @@ public class OrderServiceImpl implements IOrderService {
         record.setRelatedOrderNo(order.getOrderNo());
         record.setRemark("购物获得积分");
         integralRecordMapper.insert(record);
+
+        log.info("积分结算完成: orderNo={}, 用户ID={}", order.getOrderNo(), user.getId());
     }
 
     /**
@@ -435,27 +484,38 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void confirmReceipt(Long userId, Long orderId) {
+        log.info("确认收货: userId={}, orderId={}", userId, orderId);
+        
         OrderInfo order = orderInfoMapper.selectById(orderId);
         if (order == null) {
+            log.error("确认收货失败: 订单不存在, orderId={}", orderId);
             throw new BusinessException(ResultCode.ORDER_NOT_EXIST);
         }
 
+        log.info("确认收货-订单信息: orderNo={}, orderStatus={}, actualAmount={}", 
+                order.getOrderNo(), order.getOrderStatus(), order.getActualAmount());
+
         // 验证订单归属
         if (!order.getUserId().equals(userId)) {
+            log.error("确认收货失败: 无权操作, orderUserId={}, currentUserId={}", order.getUserId(), userId);
             throw new BusinessException("无权操作此订单");
         }
 
         if (order.getOrderStatus() != OrderStatusEnum.SHIPPED) {
+            log.error("确认收货失败: 订单状态异常, orderStatus={}", order.getOrderStatus());
             throw new BusinessException("订单状态异常，无法确认收货");
         }
 
         // 更新订单状态
         order.setOrderStatus(OrderStatusEnum.COMPLETED);
         orderInfoMapper.updateById(order);
+        log.info("确认收货-订单状态已更新为已完成");
 
         // 结算返现和积分（返现基于实付金额，已自动扣除积分抵扣）
+        log.info("确认收货-开始结算返现和积分...");
         commissionService.settleCommission(order);
         settleIntegral(order);
+        log.info("确认收货-结算完成");
     }
 
     @Override
@@ -473,7 +533,18 @@ public class OrderServiceImpl implements IOrderService {
                         .eq(OrderItem::getOrderId, orderId));
 
         List<OrderVO.OrderItemVO> itemVOs = items.stream()
-                .map(item -> BeanUtil.copyProperties(item, OrderVO.OrderItemVO.class))
+                .map(item -> {
+                    OrderVO.OrderItemVO itemVO = new OrderVO.OrderItemVO();
+                    itemVO.setProductId(item.getProductId());
+                    itemVO.setProductName(item.getProductName());
+                    itemVO.setProductImage(item.getProductImage());
+                    // 优先使用实际成交价，如果为空则使用原价
+                    itemVO.setProductPrice(item.getActualPrice() != null ? item.getActualPrice() : item.getProductPrice());
+                    itemVO.setQuantity(item.getQuantity());
+                    itemVO.setSubtotalAmount(item.getSubtotalAmount());
+                    itemVO.setSpecName(item.getSpecName());
+                    return itemVO;
+                })
                 .collect(Collectors.toList());
         vo.setItems(itemVOs);
 
@@ -496,6 +567,17 @@ public class OrderServiceImpl implements IOrderService {
         vo.setUseIntegral(order.getIntegralUsed());
 
         return vo;
+    }
+
+    @Override
+    public OrderVO getOrderDetailByOrderNo(String orderNo) {
+        OrderInfo order = orderInfoMapper.selectOne(
+                new LambdaQueryWrapper<OrderInfo>()
+                        .eq(OrderInfo::getOrderNo, orderNo));
+        if (order == null) {
+            throw new BusinessException(ResultCode.ORDER_NOT_EXIST);
+        }
+        return getOrderDetail(order.getId());
     }
 
     @Override

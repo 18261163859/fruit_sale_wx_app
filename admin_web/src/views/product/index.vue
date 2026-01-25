@@ -233,11 +233,11 @@
             {{ formatMoney(row.price) }}
           </template>
         </el-table-column>
-        <el-table-column prop="vipPrice" label="VIP价格" width="100">
+        <!-- <el-table-column prop="vipPrice" label="VIP价格" width="100">
           <template #default="{ row }">
             {{ row.vipPrice ? formatMoney(row.vipPrice) : '-' }}
           </template>
-        </el-table-column>
+        </el-table-column> -->
         <el-table-column prop="stock" label="库存" width="80" />
         <el-table-column prop="sortOrder" label="排序" width="80" />
         <el-table-column prop="status" label="状态" width="80">
@@ -265,9 +265,9 @@
         <el-form-item label="价格" required>
           <el-input-number v-model="specForm.price" :min="0" :precision="2" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="VIP价格">
+        <!-- <el-form-item label="VIP价格">
           <el-input-number v-model="specForm.vipPrice" :min="0" :precision="2" style="width: 100%" />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="库存" required>
           <el-input-number v-model="specForm.stock" :min="0" style="width: 100%" />
         </el-form-item>

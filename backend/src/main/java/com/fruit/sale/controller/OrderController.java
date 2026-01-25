@@ -43,15 +43,13 @@ public class OrderController {
 
     @Operation(summary = "创建订单", description = "用户下单购买商品")
     @PostMapping("/create")
-    public Result<Map<String,Object>> createOrder(HttpServletRequest request,
+    public Result<OrderVO> createOrder(HttpServletRequest request,
                                     @Valid @RequestBody CreateOrderDTO createOrderDTO) {
         Long userId = (Long) request.getAttribute("userId");
         OrderVO order = orderService.createOrder(userId, createOrderDTO);
-        Map<String, Object> resMap = new HashMap<>();
-        resMap.put("orderId", order.getId());
-        resMap.put("orderNo", order.getOrderNo());
 
-        return Result.success(resMap);
+        // 返回完整的订单信息
+        return Result.success(order);
     }
 
     @Operation(summary = "发起支付", description = "创建支付订单并返回微信支付参数")
@@ -108,6 +106,13 @@ public class OrderController {
     @GetMapping("/{orderId}")
     public Result<OrderVO> getOrderDetail(@PathVariable Long orderId) {
         OrderVO order = orderService.getOrderDetail(orderId);
+        return Result.success(order);
+    }
+
+    @Operation(summary = "根据订单号获取订单详情", description = "根据订单号获取详细信息")
+    @GetMapping("/no/{orderNo}")
+    public Result<OrderVO> getOrderDetailByOrderNo(@PathVariable String orderNo) {
+        OrderVO order = orderService.getOrderDetailByOrderNo(orderNo);
         return Result.success(order);
     }
 

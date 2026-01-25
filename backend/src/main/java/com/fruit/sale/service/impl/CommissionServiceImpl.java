@@ -292,10 +292,12 @@ public class CommissionServiceImpl implements ICommissionService {
     public PageResult<CommissionRecordVO> getCommissionRecords(Long agentId, Long current, Long size) {
         Page<CommissionRecord> page = new Page<>(current, size);
 
+        LambdaQueryWrapper<CommissionRecord> commissionRecordLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        if(agentId>0) {
+            commissionRecordLambdaQueryWrapper.eq(CommissionRecord::getAgentId, agentId);
+        }
         Page<CommissionRecord> recordPage = commissionRecordMapper.selectPage(page,
-                new LambdaQueryWrapper<CommissionRecord>()
-                        .eq(CommissionRecord::getAgentId, agentId)
-                        .orderByDesc(CommissionRecord::getCreateTime));
+                commissionRecordLambdaQueryWrapper.orderByDesc(CommissionRecord::getCreateTime));
 
         List<CommissionRecordVO> voList = recordPage.getRecords().stream()
                 .map(record -> BeanUtil.copyProperties(record, CommissionRecordVO.class))

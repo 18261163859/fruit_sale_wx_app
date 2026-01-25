@@ -2,7 +2,7 @@
   <div class="page-container">
     <div class="page-header">
       <h2 class="page-title">订单管理</h2>
-      <el-button type="success" @click="handleExport">导出订单</el-button>
+      <!-- <el-button type="success" @click="handleExport">导出订单</el-button> -->
     </div>
 
     <!-- 搜索表单 -->
@@ -387,15 +387,15 @@ const handleFinish = async (row: Order) => {
 }
 
 // 导出订单
-const handleExport = async () => {
-  try {
-    const res = await exportOrders(searchParams.value)
-    downloadFile(res.data, `订单列表_${new Date().getTime()}.xlsx`)
-    ElMessage.success('导出成功')
-  } catch (error) {
-    console.error('导出失败:', error)
-  }
-}
+// const handleExport = async () => {
+//   try {
+//     const res = await exportOrders(searchParams.value)
+//     downloadFile(res.data, `订单列表_${new Date().getTime()}.xlsx`)
+//     ElMessage.success('导出成功')
+//   } catch (error) {
+//     console.error('导出失败:', error)
+//   }
+// }
 
 onMounted(() => {
   loadData()

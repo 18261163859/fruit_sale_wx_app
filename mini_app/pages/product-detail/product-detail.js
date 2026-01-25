@@ -36,12 +36,21 @@ Page({
     const { selectedSpec, product } = this.data;
     let saveAmount = '0.00';
 
-    if (selectedSpec && selectedSpec.vipPrice < selectedSpec.price) {
-      saveAmount = (selectedSpec.price - selectedSpec.vipPrice).toFixed(2);
-    } else if (!selectedSpec && product.vipPrice < product.price) {
-      saveAmount = (product.price - product.vipPrice).toFixed(2);
+    if (selectedSpec) {
+      const specPrice = parseFloat(selectedSpec.price) || 0;
+      const specVipPrice = parseFloat(selectedSpec.vipPrice) || 0;
+      if (specVipPrice < specPrice) {
+        saveAmount = (specPrice - specVipPrice).toFixed(2);
+      }
+    } else {
+      const productPrice = parseFloat(product.price) || 0;
+      const productVipPrice = parseFloat(product.vipPrice) || 0;
+      if (productVipPrice < productPrice) {
+        saveAmount = (productPrice - productVipPrice).toFixed(2);
+      }
     }
 
+    console.log('计算VIP节省:', { selectedSpec, product, saveAmount });
     this.setData({ vipSaveAmount: saveAmount });
   },
 
@@ -71,11 +80,20 @@ Page({
       const res = await getProductSpecs(this.data.productId);
       if (res.code === 200 && res.data) {
         const specs = res.data.filter(spec => spec.status === 1); // 只显示启用的规格
-        this.setData({ specs });
+
+        // 处理价格字段，确保是数字类型
+        const normalizedSpecs = specs.map(spec => ({
+          ...spec,
+          price: parseFloat(spec.price) || 0,
+          vipPrice: parseFloat(spec.vipPrice) || 0,
+          stock: parseInt(spec.stock) || 0
+        }));
+
+        this.setData({ specs: normalizedSpecs });
 
         // 如果有规格，默认选中第一个
-        if (specs.length > 0) {
-          this.setData({ selectedSpec: specs[0] });
+        if (normalizedSpecs.length > 0) {
+          this.setData({ selectedSpec: normalizedSpecs[0] });
           this.calculateVipSave();
         }
       }
@@ -112,6 +130,7 @@ Page({
       });
       return;
     }
+    console.log('选择规格:', spec);
     this.setData({ selectedSpec: spec });
     this.calculateVipSave();
   },
@@ -162,7 +181,7 @@ Page({
   },
 
   buyNow() {
-    const { product, selectedSpec, specs } = this.data;
+    const { product, selectedSpec, specs, isVip } = this.data;
 
     // 如果有规格但未选择，先显示规格选择器
     if (specs.length > 0 && !selectedSpec) {
@@ -174,6 +193,17 @@ Page({
       return;
     }
 
+    // 根据VIP状态选择正确的价格
+    let price, originalPrice;
+    if (selectedSpec) {
+      originalPrice = selectedSpec.price;
+      // VIP用户使用VIP价，非VIP用户使用原价
+      price = (isVip && selectedSpec.vipPrice) ? selectedSpec.vipPrice : selectedSpec.price;
+    } else {
+      originalPrice = product.price;
+      price = (isVip && product.vipPrice) ? product.vipPrice : product.price;
+    }
+
     // 准备商品数据
     const productData = {
       productId: product.id,
@@ -181,8 +211,8 @@ Page({
       productImage: product.mainImage,
       specId: selectedSpec ? selectedSpec.id : null,
       specName: selectedSpec ? selectedSpec.specName : '',
-      price: selectedSpec ? selectedSpec.vipPrice || selectedSpec.price : product.vipPrice || product.price,
-      originalPrice: selectedSpec ? selectedSpec.price : product.price,
+      price: price,
+      originalPrice: originalPrice,
       quantity: 1,
       stock: selectedSpec ? selectedSpec.stock : product.stock
     };

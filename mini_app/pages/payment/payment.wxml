@@ -33,7 +33,7 @@
     <button class="btn cancel-btn" bindtap="cancelPayment">
       取消支付
     </button>
-    <button class="btn pay-btn" bindtap="confirmPayment" disabled="{{loading || !payParams}}">
+    <button class="btn pay-btn" bindtap="confirmPayment" >
       {{loading ? '支付中...' : '确认支付'}}
     </button>
   </view>

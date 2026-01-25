@@ -91,33 +91,31 @@
     </button>
   </view>
 
-  <!-- 支付方式弹窗 -->
+  <!-- 支付确认弹窗 -->
   <view class="payment-modal" wx:if="{{showPaymentModal}}">
     <view class="modal-mask" bindtap="closePaymentModal"></view>
     <view class="modal-content">
       <view class="modal-header">
-        <text class="modal-title">选择支付方式</text>
+        <text class="modal-title">确认开通</text>
         <text class="modal-close" bindtap="closePaymentModal">×</text>
       </view>
-      <view class="payment-options">
-        <view class="payment-option" bindtap="selectPayment" data-type="wechat">
-          <view class="payment-left">
-            <text class="payment-icon">💳</text>
-            <text class="payment-name">微信支付</text>
-          </view>
-          <view class="payment-check" wx:if="{{paymentType === 'wechat'}}">✓</view>
+      <view class="payment-info">
+        <view class="info-row">
+          <text class="info-label">会员类型</text>
+          <text class="info-value">星享会员 ({{vipDurationDays}}天)</text>
         </view>
-        <view class="payment-option" bindtap="selectPayment" data-type="alipay">
-          <view class="payment-left">
-            <text class="payment-icon">💳</text>
-            <text class="payment-name">支付宝</text>
-          </view>
-          <view class="payment-check" wx:if="{{paymentType === 'alipay'}}">✓</view>
+        <view class="info-row">
+          <text class="info-label">支付方式</text>
+          <text class="info-value">微信支付</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">支付金额</text>
+          <text class="info-value price">¥{{amount}}</text>
         </view>
       </view>
       <view class="modal-footer">
         <button class="confirm-pay-btn" bindtap="confirmPayment" loading="{{paying}}">
-          {{paying ? '支付中...' : '确认支付 ¥' + amount}}
+          {{paying ? '支付中...' : '确认开通'}}
         </button>
       </view>
     </view>

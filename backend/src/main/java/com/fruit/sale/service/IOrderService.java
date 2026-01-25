@@ -50,6 +50,11 @@ public interface IOrderService {
     OrderVO getOrderDetail(Long orderId);
 
     /**
+     * 根据订单号获取订单详情
+     */
+    OrderVO getOrderDetailByOrderNo(String orderNo);
+
+    /**
      * 获取用户订单列表
      */
     PageResult<OrderVO> getUserOrders(Long userId, Integer status, Long current, Long size);

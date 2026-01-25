@@ -41,11 +41,11 @@ public class WeChatUtil {
      */
     public String getAccessToken() {
         // 先从Redis获取
-        String accessToken = redisTemplate.opsForValue().get(ACCESS_TOKEN_KEY);
-        if (accessToken != null && !accessToken.isEmpty()) {
-            return accessToken;
-        }
-
+//        String accessToken = redisTemplate.opsForValue().get(ACCESS_TOKEN_KEY);
+//        if (accessToken != null && !accessToken.isEmpty()) {
+//            return accessToken;
+//        }
+        String accessToken = "";
         // Redis中没有，调用微信API获取
         String url = String.format(GET_ACCESS_TOKEN_URL, appid, secret);
         String response = HttpUtil.get(url);

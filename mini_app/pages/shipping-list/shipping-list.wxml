@@ -110,7 +110,7 @@
             <text class="order-time">发货时间：{{item.updateTime}}</text>
             <text class="order-amount">订单金额：¥{{item.totalAmount}}</text>
           </view>
-          <button class="detail-btn" bindtap="goToDetail" data-id="{{item.id}}">查看详情</button>
+          <button class="detail-btn" bindtap="goToDetail" data-order-no="{{item.orderNo}}">查看详情</button>
         </view>
       </view>
     </block>

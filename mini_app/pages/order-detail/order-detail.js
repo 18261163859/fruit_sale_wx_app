@@ -1,24 +1,28 @@
 // pages/order-detail/order-detail.js
-const { getOrderDetail, cancelOrder, payOrder, confirmReceipt } = require('../../api/order.js');
+const { getOrderDetailByOrderNo, cancelOrder, payOrder, confirmReceipt } = require('../../api/order.js');
 
 Page({
   data: {
-    orderId: null,
+    orderNo: null,
     order: null,
     step: 0, // 订单进度：0-下单, 1-支付, 2-发货, 3-完成
     loading: true
   },
 
   onLoad(options) {
-    if (options.id) {
-      this.setData({ orderId: options.id });
+    if (options.orderNo) {
+      this.setData({ orderNo: options.orderNo });
+      this.loadOrderDetail();
+    } else if (options.id) {
+      // 兼容旧版 id 参数
+      this.setData({ orderNo: options.id });
       this.loadOrderDetail();
     }
   },
 
   onShow() {
     // 每次显示页面时刷新订单数据
-    if (this.data.orderId) {
+    if (this.data.orderNo) {
       this.loadOrderDetail();
     }
   },
@@ -28,7 +32,7 @@ Page({
     try {
       this.setData({ loading: true });
 
-      const res = await getOrderDetail(this.data.orderId);
+      const res = await getOrderDetailByOrderNo(this.data.orderNo);
 
       if (res.code === 200) {
         const order = this.processOrder(res.data);
@@ -111,7 +115,7 @@ Page({
         if (res.confirm) {
           try {
             wx.showLoading({ title: '取消中...' });
-            const result = await cancelOrder(this.data.orderId);
+            const result = await cancelOrder(this.data.order.id);
 
             if (result.code === 200) {
               wx.showToast({
@@ -165,7 +169,7 @@ Page({
         if (res.confirm) {
           try {
             wx.showLoading({ title: '确认中...' });
-            const result = await confirmReceipt(this.data.orderId);
+            const result = await confirmReceipt(this.data.order.id);
 
             if (result.code === 200) {
               wx.showToast({

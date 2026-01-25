@@ -77,7 +77,7 @@
 
     <!-- 设为默认 -->
     <view class="form-section">
-      <view class="default-row" bindtap="toggleDefault">
+      <view class="default-row">
         <view class="default-label">设为默认地址</view>
         <switch
           class="default-switch"

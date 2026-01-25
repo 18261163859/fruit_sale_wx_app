@@ -29,7 +29,7 @@
         <button
           class="action-btn"
           wx:if="{{item.isDefault !== 1}}"
-          catchtap="setDefault"
+          catchtap="setDefaultAddress"
           data-id="{{item.id}}"
         >
           设为默认

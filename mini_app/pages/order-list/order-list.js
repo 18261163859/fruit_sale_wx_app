@@ -211,9 +211,9 @@ Page({
 
   // 跳转到订单详情
   goToDetail(e) {
-    const { id } = e.currentTarget.dataset;
+    const { orderNo } = e.currentTarget.dataset;
     wx.navigateTo({
-      url: `/pages/order-detail/order-detail?id=${id}`
+      url: `/pages/order-detail/order-detail?orderNo=${orderNo}`
     });
   },
 

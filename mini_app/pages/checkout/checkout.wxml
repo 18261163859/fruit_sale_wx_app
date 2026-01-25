@@ -70,7 +70,7 @@
   </view>
 
   <!-- 订单备注 -->
-  <view class="remark-section">
+  <!-- <view class="remark-section">
     <view class="remark-label">订单备注</view>
     <textarea
       class="remark-input"
@@ -79,7 +79,7 @@
       value="{{remark}}"
       bindinput="onRemarkInput"
     />
-  </view>
+  </view> -->
 
   <!-- 价格明细 -->
   <view class="price-section">

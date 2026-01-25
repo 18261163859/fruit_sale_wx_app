@@ -393,9 +393,9 @@ Page({
 
       if (res.code === 200) {
         const data = res.data;
-        const orderId = data.orderId;
+        const orderId = data.id;
         const orderNo = data.orderNo;
-        console.log(orderId)
+        console.log('订单创建成功:', orderId, orderNo)
         // 如果是从购物车来的，删除已结算的商品
         if (this.data.from === 'cart' && this.data.cartIds.length > 0) {
           this.clearCartItems(this.data.cartIds);

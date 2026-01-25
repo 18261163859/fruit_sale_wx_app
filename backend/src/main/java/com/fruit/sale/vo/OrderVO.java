@@ -109,13 +109,19 @@ public class OrderVO {
         @Schema(description = "商品图片")
         private String productImage;
 
-        @Schema(description = "商品价格")
+        @Schema(description = "商品价格（原价）")
         private BigDecimal productPrice;
+
+        @Schema(description = "实际成交价（VIP折扣后）")
+        private BigDecimal actualPrice;
 
         @Schema(description = "购买数量")
         private Integer quantity;
 
         @Schema(description = "小计金额")
         private BigDecimal subtotalAmount;
+
+        @Schema(description = "规格名称")
+        private String specName;
     }
 }

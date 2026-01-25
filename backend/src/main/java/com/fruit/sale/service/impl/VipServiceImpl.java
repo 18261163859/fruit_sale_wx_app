@@ -8,6 +8,7 @@ import com.fruit.sale.entity.VipOrder;
 import com.fruit.sale.mapper.FinanceRecordMapper;
 import com.fruit.sale.mapper.UserInfoMapper;
 import com.fruit.sale.mapper.VipOrderMapper;
+import com.fruit.sale.service.ISystemConfigService;
 import com.fruit.sale.service.IVipService;
 import com.fruit.sale.vo.VipOrderVO;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,9 @@ public class VipServiceImpl implements IVipService {
     @Autowired
     private FinanceRecordMapper financeRecordMapper;
 
-    private static final BigDecimal VIP_PRICE = new BigDecimal("199.00");
+    @Autowired
+    private ISystemConfigService iSystemConfigService;
+
     private static final int VIP_DURATION_DAYS = 365;
 
     @Override
@@ -69,6 +72,10 @@ public class VipServiceImpl implements IVipService {
             log.info("用户 {} 已有未支付订单 {}", userId, existingOrder.getOrderNo());
             return convertToVO(existingOrder);
         }
+
+        String VIP_PRICE_STR = iSystemConfigService.getConfigValue("vipPrice");
+
+        BigDecimal VIP_PRICE = new BigDecimal(VIP_PRICE_STR);
 
         // 创建新订单
         VipOrder vipOrder = new VipOrder();

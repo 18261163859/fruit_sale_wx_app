@@ -14,9 +14,14 @@ function getOrders(params) {
   return get('/order/my/list', params);
 }
 
-// 获取订单详情
+// 获取订单详情（根据ID）
 function getOrderDetail(id) {
   return get(`/order/${id}`);
+}
+
+// 获取订单详情（根据订单号）
+function getOrderDetailByOrderNo(orderNo) {
+  return get(`/order/no/${orderNo}`);
 }
 
 // 取消订单
@@ -58,6 +63,7 @@ module.exports = {
   createOrder,
   getOrders,
   getOrderDetail,
+  getOrderDetailByOrderNo,
   cancelOrder,
   confirmReceipt,
   payOrder,

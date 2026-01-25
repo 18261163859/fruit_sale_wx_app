@@ -40,7 +40,7 @@
             </el-table-column>
             <el-table-column prop="commissionRate" label="返现比例" width="100">
               <template #default="{ row }">
-                {{ row.commissionRate }}%
+                {{ row.commissionRate}}%
               </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" width="100">
@@ -265,7 +265,7 @@
             </el-table-column>
             <el-table-column prop="commissionRate" label="返现比例" width="100">
               <template #default="{ row }">
-                {{ row.commissionRate?.toFixed(2) || '0' }}%
+                {{ (row.commissionRate * 100).toFixed(0) }}%
               </template>
             </el-table-column>
             <el-table-column prop="commissionAmount" label="返现金额" width="120">
