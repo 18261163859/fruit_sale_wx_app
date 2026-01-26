@@ -10,8 +10,8 @@ App({
     cartCount: 0,
     currentTheme: 'normal',  // 当前主题类型
     themeConfig: null,       // 当前主题配置
-    // baseUrl: 'https://www.zhiyeji.com/api',  // 后端API地址
-    baseUrl: 'http://127.0.0.1:8000/api'
+    baseUrl: 'https://www.zhiyeji.com/api',  // 后端API地址
+    // baseUrl: 'http://127.0.0.1:8000/api'
   },
 
   onLaunch(options) {

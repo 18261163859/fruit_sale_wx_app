@@ -33,7 +33,7 @@ Page({
     });
 
     // 获取支付参数
-    // this.getPayParams();
+    this.getPayParams();
   },
 
   formatTime(timeStr) {
@@ -116,25 +116,25 @@ Page({
   async confirmPayment() {
     const { payParams, orderId, isMockMode } = this.data;
 
-    // if (!payParams) {
-    //   wx.showToast({
-    //     title: '支付参数获取中...',
-    //     icon: 'none'
-    //   });
-    //   return;
-    // }
+    if (!payParams) {
+      wx.showToast({
+        title: '支付参数获取中...',
+        icon: 'none'
+      });
+      return;
+    }
 
     try {
       this.setData({ loading: true });
       wx.showLoading({ title: '支付中...' });
-      await this.mockPayment();
-      // if (isMockMode) {
-      //   // 模拟支付模式
-      //   await this.mockPayment();
-      // } else {
-      //   // 真实微信支付
-      //   await this.realPayment(payParams);
-      // }
+      // await this.mockPayment();
+      if (isMockMode) {
+        // 模拟支付模式
+        await this.mockPayment();
+      } else {
+        // 真实微信支付
+        await this.realPayment(payParams);
+      }
     } catch (err) {
       console.error('支付失败:', err);
       wx.showToast({

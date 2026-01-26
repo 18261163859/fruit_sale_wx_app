@@ -118,13 +118,13 @@ Page({
       // 4. 支付成功后调用后端确认接口: POST /vip/order/pay
 
       // 当前默认使用模拟支付
-      await this.mockVipPayment();
+      // await this.mockVipPayment();
 
       // 启用真实支付时，替换为以下代码:
-      // const payParamsRes = await post(`/pay/params/vip/${this.data.orderNo}`, {});
-      // if (payParamsRes.code === 200 && payParamsRes.data) {
-      //   await this.realVipPayment(payParamsRes.data);
-      // }
+      const payParamsRes = await post(`/pay/params/vip/${this.data.orderNo}`, {});
+      if (payParamsRes.code === 200 && payParamsRes.data) {
+        await this.realVipPayment(payParamsRes.data);
+      }
     } catch (err) {
       console.error('支付失败:', err);
       wx.showToast({
