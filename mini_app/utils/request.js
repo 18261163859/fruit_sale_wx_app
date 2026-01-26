@@ -34,8 +34,31 @@ function request(options) {
         if (res.statusCode === 200) {
           if (res.data.code === 0 || res.data.code === 200 || res.data.success) {
             resolve(res.data);
+          } else if (res.data.code === 401) {
+            wx.showToast({
+              title: '登录已过期',
+              icon: 'none'
+            });
+            wx.removeStorageSync('token');
+            wx.removeStorageSync('userInfo');
+
+            const pages = getCurrentPages();
+            if (pages.length > 0) {
+              const currentPage = pages[pages.length - 1];
+              const route = currentPage.route;
+              const options = currentPage.options;
+              const queryString = Object.keys(options).map(key => `${key}=${options[key]}`).join('&');
+              const fullPath = queryString ? `/${route}?${queryString}` : `/${route}`;
+              wx.setStorageSync('redirectUrl', fullPath);
+            }
+
+            setTimeout(() => {
+              wx.reLaunch({
+                url: '/pages/login/login'
+              });
+            }, 1500);
+            reject(res.data);
           } else {
-            // 业务错误
             wx.showToast({
               title: res.data.message || res.data.msg || '请求失败',
               icon: 'none',
@@ -51,6 +74,17 @@ function request(options) {
           });
           wx.removeStorageSync('token');
           wx.removeStorageSync('userInfo');
+
+          const pages = getCurrentPages();
+          if (pages.length > 0) {
+            const currentPage = pages[pages.length - 1];
+            const route = currentPage.route;
+            const options = currentPage.options;
+            const queryString = Object.keys(options).map(key => `${key}=${options[key]}`).join('&');
+            const fullPath = queryString ? `/${route}?${queryString}` : `/${route}`;
+            wx.setStorageSync('redirectUrl', fullPath);
+          }
+
           setTimeout(() => {
             wx.reLaunch({
               url: '/pages/login/login'

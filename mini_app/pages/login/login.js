@@ -14,19 +14,22 @@ Page({
   onLoad(options) {
     // 获取邀请码（优先使用URL参数，其次使用缓存）
     let inviteCode = options.inviteCode || wx.getStorageSync('pendingInviteCode') || '';
+    console.log("123123123213"+inviteCode)
+
     if (inviteCode) {
       this.setData({ inviteCode });
-      // 清除缓存的邀请码
       wx.removeStorageSync('pendingInviteCode');
     }
 
-    // 保存跳转参数（如商品详情页）
-    if (options.productId) {
+    const redirectUrl = wx.getStorageSync('redirectUrl');
+    if (redirectUrl) {
+      this.setData({ redirectUrl });
+      wx.removeStorageSync('redirectUrl');
+    } else if (options.productId) {
       this.setData({
         redirectUrl: `/pages/product-detail/product-detail?id=${options.productId}`
       });
     } else {
-      // 检查是否有待跳转的商品ID（从分享链接进入）
       const pendingProductId = wx.getStorageSync('pendingProductId');
       if (pendingProductId) {
         this.setData({

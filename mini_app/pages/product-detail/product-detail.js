@@ -230,7 +230,6 @@ Page({
     const { product } = this.data;
     const app = getApp();
     const userInfo = app.globalData.userInfo;
-
     // 构建分享路径，携带商品ID和邀请码
     let path = `/pages/product-detail/product-detail?id=${product.id}`;
     if (userInfo && userInfo.inviteCode) {
