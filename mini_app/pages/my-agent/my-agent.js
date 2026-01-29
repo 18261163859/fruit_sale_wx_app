@@ -6,7 +6,7 @@ Page({
   data: {
     userInfo: {},
     statistics: {},
-    activeTab: 'members',  // 默认显示下级会员，后面会根据代理等级调整
+    activeTab: 'agents',  // 默认显示下级代理（仅一级代理可见）
     agentList: [],
     memberList: [],
     teamList: [],

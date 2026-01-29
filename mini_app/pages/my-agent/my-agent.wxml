@@ -15,10 +15,7 @@
         <text class="stat-value">{{statistics.subAgentCount || 0}}</text>
         <text class="stat-label">下级代理</text>
       </view>
-      <view class="stat-item">
-        <text class="stat-value">{{statistics.subMemberCount || 0}}</text>
-        <text class="stat-label">下级会员</text>
-      </view>
+      <!-- 下级会员统计已隐藏 -->
     </view>
 
     <!-- 邀请码 -->
@@ -58,9 +55,7 @@
     <view class="tab-item {{activeTab === 'agents' ? 'active' : ''}}" bindtap="switchTab" data-tab="agents" wx:if="{{userInfo.agentLevel === 1}}">
       下级代理 ({{agentList.length}})
     </view>
-    <view class="tab-item {{activeTab === 'members' ? 'active' : ''}}" bindtap="switchTab" data-tab="members">
-      下级会员 ({{memberList.length}})
-    </view>
+    <!-- 下级会员tab已隐藏 -->
     <view class="tab-item {{activeTab === 'applications' ? 'active' : ''}}" bindtap="switchTab" data-tab="applications" wx:if="{{userInfo.agentLevel === 1}}">
       邀请申请 ({{inviteApplications.length}})
     </view>
@@ -108,7 +103,8 @@
     </view>
   </view>
 
-  <!-- 下级会员列表 -->
+  <!-- 下级会员列表（已隐藏） -->
+  <!--
   <view class="team-list" wx:if="{{activeTab === 'members'}}">
     <block wx:if="{{memberList.length > 0}}">
       <view class="team-item" wx:for="{{memberList}}" wx:key="id">
@@ -149,6 +145,7 @@
       <text class="empty-tip">邀请用户注册后会显示在这里</text>
     </view>
   </view>
+  -->
 
   <!-- 邀请申请列表 -->
   <view class="team-list" wx:if="{{activeTab === 'applications'}}">

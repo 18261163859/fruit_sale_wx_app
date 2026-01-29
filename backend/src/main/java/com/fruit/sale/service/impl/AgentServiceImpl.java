@@ -238,10 +238,10 @@ public class AgentServiceImpl implements IAgentService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         vo.setPendingCommission(pendingCommission);
 
-        // 计算可用余额 = 累计收益 - 已申请金额（待审核+已通过）
+        // 计算可用余额 = 累计收益 - 已申请金额（待审核+已通过+已返现）
         LambdaQueryWrapper<CommissionApplication> appWrapper = new LambdaQueryWrapper<>();
         appWrapper.eq(CommissionApplication::getAgentId, userId)
-                .in(CommissionApplication::getStatus, 0, 1);  // 待审核(0) 和 已通过(1)
+                .in(CommissionApplication::getStatus, 0, 1, 3);  // 待审核(0)、已通过(1)、已返现(3)
         List<CommissionApplication> applications = commissionApplicationMapper.selectList(appWrapper);
 
         BigDecimal appliedAmount = applications.stream()
