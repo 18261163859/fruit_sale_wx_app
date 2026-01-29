@@ -21,6 +21,8 @@ import com.fruit.sale.vo.IntegralRecordVO;
 import com.fruit.sale.vo.OrderStatisticsVO;
 import com.fruit.sale.entity.OrderInfo;
 import com.fruit.sale.mapper.OrderInfoMapper;
+import com.fruit.sale.entity.AgentApplication;
+import com.fruit.sale.mapper.AgentApplicationMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,6 +61,9 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     private com.fruit.sale.utils.WeChatApiUtil weChatApiUtil;
+
+    @Autowired
+    private AgentApplicationMapper agentApplicationMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -235,14 +240,27 @@ public class UserServiceImpl implements IUserService {
 
                 // 处理邀请码，查找邀请人
                 Long inviterId = loginDTO.getInviterId();
-                if (loginDTO.getInviteCode() != null && !loginDTO.getInviteCode().isEmpty()) {
+                boolean isAgentInvitation = false;
+
+                if (loginDTO.getAgentInviteCode() != null && !loginDTO.getAgentInviteCode().isEmpty()) {
+                    UserInfo inviter = userInfoMapper.selectOne(new LambdaQueryWrapper<UserInfo>()
+                            .eq(UserInfo::getInviteCode, loginDTO.getAgentInviteCode()));
+                    if (inviter != null) {
+                        inviterId = inviter.getId();
+                        isAgentInvitation = true;
+                        log.info("Found inviter via agent invite code: {}", loginDTO.getAgentInviteCode());
+                    } else {
+                        log.warn("Invalid agent invite code: {}", loginDTO.getAgentInviteCode());
+                    }
+                }
+                else if (loginDTO.getInviteCode() != null && !loginDTO.getInviteCode().isEmpty()) {
                     UserInfo inviter = userInfoMapper.selectOne(new LambdaQueryWrapper<UserInfo>()
                             .eq(UserInfo::getInviteCode, loginDTO.getInviteCode()));
                     if (inviter != null) {
                         inviterId = inviter.getId();
-                        log.info("通过邀请码{}找到邀请人: {}", loginDTO.getInviteCode(), inviter.getId());
+                        log.info("Found inviter via invite code: {}", loginDTO.getInviteCode());
                     } else {
-                        log.warn("无效的邀请码: {}", loginDTO.getInviteCode());
+                        log.warn("Invalid invite code: {}", loginDTO.getInviteCode());
                     }
                 }
 
@@ -512,12 +530,6 @@ public class UserServiceImpl implements IUserService {
 
         // 5. 更新当前用户的邀请人信息
         currentUser.setInviterUserId(inviter.getId());
-
-        // 如果邀请人是代理，则设置为其下级
-        if (inviter.getUserType() != null && (inviter.getUserType() == 3 || inviter.getUserType() == 4)) {
-            // 邀请人是一级代理(3)或二级代理(4)
-            currentUser.setParentAgentId(inviter.getId());
-        }
 
         userInfoMapper.updateById(currentUser);
 

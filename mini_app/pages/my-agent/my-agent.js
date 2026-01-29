@@ -13,7 +13,7 @@ Page({
     inviteApplications: [],
     showInviteModal: false,
     invitePhone: '',
-    inviteCommissionRate: '5.00'
+    inviteCommissionRate: '80.00'
   },
 
   onLoad() {
@@ -196,9 +196,22 @@ Page({
    * 分享给好友
    */
   onShareAppMessage() {
+    const { userInfo, inviteCommissionRate } = this.data;
+
+    // 一级代理分享：邀请成为二级代理
+    if (userInfo.agentLevel === 1) {
+      const commissionRate = inviteCommissionRate || '80.00';
+      return {
+        title: '植野集 - 邀请你成为我的下级代理',
+        path: `/pages/index/index?agentInviteCode=${userInfo.inviteCode}&commissionRate=${commissionRate}`,
+        imageUrl: '/images/share-cover.png'
+      };
+    }
+
+    // 二级代理分享：只绑定邀请码
     return {
-      title: '植野集 - 邀请你成为我的下级代理',
-      path: `/pages/index/index?inviteCode=${this.data.userInfo.inviteCode}`,
+      title: '植野集 - 邀请你一起购买优质水果',
+      path: `/pages/index/index?inviteCode=${userInfo.inviteCode}`,
       imageUrl: '/images/share-cover.png'
     };
   },
@@ -231,7 +244,7 @@ Page({
     this.setData({
       showInviteModal: true,
       invitePhone: '',
-      inviteCommissionRate: '5.00'
+      inviteCommissionRate: '80.00'
     });
   },
 

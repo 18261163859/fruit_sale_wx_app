@@ -54,6 +54,11 @@ function inviteSubAgent(data) {
   return post('/agent/invite-sub-agent', data);
 }
 
+// 被邀请者接受代理邀请（通过分享链接）
+function acceptAgentInvitation(data) {
+  return post('/agent/accept-invitation', data);
+}
+
 // 获取我发起的邀请申请列表
 function getMyInviteApplications() {
   return get('/agent/invite-applications');
@@ -80,6 +85,7 @@ module.exports = {
   applyAgent,
   generateInviteQrcode,
   inviteSubAgent,
+  acceptAgentInvitation,
   getMyInviteApplications,
   submitCommissionApplication,
   getMyCommissionApplications

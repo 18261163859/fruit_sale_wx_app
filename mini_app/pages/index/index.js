@@ -2,7 +2,7 @@
 const { getBanners, getRecommendProducts } = require('../../api/product.js');
 const { addToCart } = require('../../api/cart.js');
 const { getUserInfo: getStorageUserInfo, setUserInfo: setStorageUserInfo } = require('../../utils/storage.js');
-const { getUserInfo: getUserInfoAPI } = require('../../api/user.js');
+const { getUserInfo: getUserInfoAPI, bindInviteCode } = require('../../api/user.js');
 const { applyTheme } = require('../../utils/theme.js');
 const { showToast, navigateTo, switchTab } = require('../../utils/common.js');
 const { convertImageUrl, getPlaceholderImage } = require('../../utils/image.js');
@@ -24,14 +24,46 @@ Page({
 
   bannerTimer: null, // 轮播图定时器
 
-  onLoad(options) {
-    // 检查是否有邀请码参数
-    if (options.inviteCode && !getStorageUserInfo()) {
-      // 如果有邀请码且用户未登录，跳转到登录页
-      wx.reLaunch({
-        url: `/pages/login/login?inviteCode=${options.inviteCode}`
+onLoad(options) {
+    // 处理代理邀请参数
+    const agentInviteCode = options.agentInviteCode || '';
+    const commissionRate = options.commissionRate || '';
+    const inviteCode = options.inviteCode || '';
+
+    // 保存普通邀请码到 Storage（供 app.js 的 tryBindPendingInviteCode 使用）
+    if (inviteCode) {
+      wx.setStorageSync('pendingInviteCode', inviteCode);
+    }
+
+    if (!getStorageUserInfo()) {
+      // 未登录用户：跳转到登录页并带上邀请参数
+      let loginParams = [];
+      if (agentInviteCode) {
+        loginParams.push(`agentInviteCode=${agentInviteCode}`);
+      }
+      if (inviteCode) {
+        loginParams.push(`inviteCode=${inviteCode}`);
+      }
+      if (commissionRate) {
+        loginParams.push(`commissionRate=${commissionRate}`);
+      }
+      if (loginParams.length > 0) {
+        wx.reLaunch({
+          url: `/pages/login/login?${loginParams.join('&')}`
+        });
+        return;
+      }
+    } else if (agentInviteCode && commissionRate) {
+      // 已登录用户：如果有代理邀请参数，保存后跳转到登录页显示确认弹窗
+      wx.setStorageSync('pendingAgentInviteCode', agentInviteCode);
+      wx.setStorageSync('pendingCommissionRate', commissionRate);
+      wx.navigateTo({
+        url: `/pages/login/login?agentInviteCode=${agentInviteCode}&commissionRate=${commissionRate}&fromIndex=1`
       });
       return;
+    } else if (inviteCode) {
+      // 已登录用户：如果有普通邀请码，尝试自动绑定
+      this.tryBindInviteCode(inviteCode);
     }
 
     this.initTheme();
@@ -318,5 +350,36 @@ Page({
       this.loadProducts()
     ]);
     wx.stopPullDownRefresh();
+  },
+
+  // 尝试绑定邀请码（已登录用户）
+  async tryBindInviteCode(inviteCode) {
+    const userInfo = getStorageUserInfo();
+
+    // 如果用户已经有邀请人，不需要绑定
+    if (userInfo && userInfo.inviterUserId) {
+      return;
+    }
+
+    // 不能绑定自己的邀请码
+    if (userInfo && inviteCode === userInfo.inviteCode) {
+      return;
+    }
+
+    try {
+      console.log('首页自动绑定邀请码:', inviteCode);
+      const res = await bindInviteCode(inviteCode);
+      if (res.code === 200) {
+        showToast('已绑定邀请人', 'success');
+        // 刷新用户信息
+        const userRes = await getUserInfoAPI();
+        if (userRes.code === 200 && userRes.data) {
+          setStorageUserInfo(userRes.data);
+          this.setData({ userInfo: userRes.data });
+        }
+      }
+    } catch (err) {
+      console.error('绑定邀请码失败:', err);
+    }
   }
 });

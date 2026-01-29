@@ -1,6 +1,6 @@
 // app.js
 const { getUserInfo: getStoredUserInfo, isLogin } = require('./utils/storage.js');
-const { getUserInfo } = require('./api/user.js');
+const { getUserInfo, bindInviteCode } = require('./api/user.js');
 const { getCartList } = require('./api/cart.js');
 const { fetchThemeConfig, getThemeByUserType, getThemeConfig, applyThemeToTabBar } = require('./utils/theme.js');
 
@@ -10,8 +10,9 @@ App({
     cartCount: 0,
     currentTheme: 'normal',  // 当前主题类型
     themeConfig: null,       // 当前主题配置
-    baseUrl: 'https://www.zhiyeji.com/api',  // 后端API地址
-    // baseUrl: 'http://127.0.0.1:8000/api'
+    // baseUrl: 'https://45e72121.r8.cpolar.top/api',
+    // baseUrl: 'https://www.zhiyeji.com/api',  // 后端API地址
+    baseUrl: 'http://127.0.0.1:8000/api'
   },
 
   onLaunch(options) {
@@ -21,9 +22,18 @@ App({
       wx.setStorageSync('pendingProductId', options.query.id);
     }
 
-    // 保存邀请码（从分享链接进入）
+    // 保存邀请码（从分享 link进入）
     if (options.query && options.query.inviteCode) {
+      console.log(options.query.inviteCode)
       wx.setStorageSync('pendingInviteCode', options.query.inviteCode);
+    }
+
+    if (options.query && options.query.agentInviteCode) {
+      wx.setStorageSync('pendingAgentInviteCode', options.query.agentInviteCode);
+    }
+
+    if (options.query && options.query.commissionRate) {
+      wx.setStorageSync('pendingCommissionRate', options.query.commissionRate);
     }
 
     // 初始化主题
@@ -80,6 +90,9 @@ App({
           if (res.data.userType) {
             this.changeTheme(res.data.userType);
           }
+
+          // 检查是否有待绑定的邀请码（已登录用户从分享链接进入）
+          await this.tryBindPendingInviteCode(res.data);
         }
       } catch (err) {
         console.error('获取用户信息失败:', err);
@@ -93,6 +106,51 @@ App({
       wx.reLaunch({
         url: '/pages/login/login'
       });
+    }
+  },
+
+  // 尝试绑定待处理的邀请码
+  async tryBindPendingInviteCode(userInfo) {
+    // 如果用户已经有邀请人，不需要绑定
+    if (userInfo.inviterUserId) {
+      wx.removeStorageSync('pendingInviteCode');
+      return;
+    }
+
+    const pendingInviteCode = wx.getStorageSync('pendingInviteCode');
+    if (!pendingInviteCode) {
+      return;
+    }
+
+    // 不能绑定自己的邀请码
+    if (pendingInviteCode === userInfo.inviteCode) {
+      wx.removeStorageSync('pendingInviteCode');
+      return;
+    }
+
+    try {
+      console.log('自动绑定邀请码:', pendingInviteCode);
+      const res = await bindInviteCode(pendingInviteCode);
+      if (res.code === 200) {
+        console.log('邀请码绑定成功');
+        wx.showToast({
+          title: '已绑定邀请人',
+          icon: 'success',
+          duration: 2000
+        });
+        // 刷新用户信息
+        const userRes = await getUserInfo();
+        if (userRes.code === 200 && userRes.data) {
+          this.globalData.userInfo = userRes.data;
+          const { setUserInfo: saveUserInfo } = require('./utils/storage.js');
+          saveUserInfo(userRes.data);
+        }
+      }
+    } catch (err) {
+      console.error('自动绑定邀请码失败:', err);
+    } finally {
+      // 无论成功失败都清除待处理的邀请码
+      wx.removeStorageSync('pendingInviteCode');
     }
   },
 

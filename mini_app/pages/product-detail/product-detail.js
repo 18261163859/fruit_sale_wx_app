@@ -1,8 +1,9 @@
 // pages/product-detail/product-detail.js
 const { getProductDetail, getProductSpecs } = require('../../api/product.js');
 const { addToCart } = require('../../api/cart.js');
+const { bindInviteCode, getUserInfo: getUserInfoAPI } = require('../../api/user.js');
 const { convertImageUrl, convertImageUrls } = require('../../utils/image.js');
-const { getUserInfo: getStorageUserInfo } = require('../../utils/storage.js');
+const { getUserInfo: getStorageUserInfo, setUserInfo: setStorageUserInfo } = require('../../utils/storage.js');
 
 Page({
   data: {
@@ -21,6 +22,11 @@ Page({
       this.setData({ productId: options.id });
       this.loadProductDetail();
       this.loadProductSpecs();
+    }
+
+    // 处理邀请码参数
+    if (options.inviteCode) {
+      this.tryBindInviteCode(options.inviteCode);
     }
   },
 
@@ -252,5 +258,46 @@ Page({
       query: `id=${product.id}&inviteCode=${userInfo?.inviteCode || ''}`,
       imageUrl: product.mainImage
     };
+  },
+
+  // 尝试绑定邀请码（已登录用户点击分享链接进入）
+  async tryBindInviteCode(inviteCode) {
+    const userInfo = getStorageUserInfo();
+
+    // 未登录不处理
+    if (!userInfo) {
+      // 保存邀请码，等登录后在 app.js 中处理
+      wx.setStorageSync('pendingInviteCode', inviteCode);
+      return;
+    }
+
+    // 如果用户已经有邀请人，不需要绑定
+    if (userInfo.inviterUserId) {
+      return;
+    }
+
+    // 不能绑定自己的邀请码
+    if (inviteCode === userInfo.inviteCode) {
+      return;
+    }
+
+    try {
+      console.log('商品详情页自动绑定邀请码:', inviteCode);
+      const res = await bindInviteCode(inviteCode);
+      if (res.code === 200) {
+        wx.showToast({
+          title: '已绑定邀请人',
+          icon: 'success',
+          duration: 2000
+        });
+        // 刷新用户信息
+        const userRes = await getUserInfoAPI();
+        if (userRes.code === 200 && userRes.data) {
+          setStorageUserInfo(userRes.data);
+        }
+      }
+    } catch (err) {
+      console.error('绑定邀请码失败:', err);
+    }
   }
 });

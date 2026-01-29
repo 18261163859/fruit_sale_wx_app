@@ -8,7 +8,6 @@ import com.fruit.sale.entity.CommissionRecord;
 import com.fruit.sale.entity.OrderInfo;
 import com.fruit.sale.entity.UserInfo;
 import com.fruit.sale.enums.CommissionStatusEnum;
-import com.fruit.sale.enums.UserTypeEnum;
 import com.fruit.sale.mapper.CommissionRecordMapper;
 import com.fruit.sale.mapper.UserInfoMapper;
 import com.fruit.sale.service.ICommissionService;
@@ -107,7 +106,7 @@ public class CommissionServiceImpl implements ICommissionService {
 
         // 一级代理自己消费，获得全部返现
         BigDecimal commissionAmount = calculateCommissionAmount(order.getActualAmount(), agent.getCommissionRate());
-        createCommissionRecord(order, agent.getId(), UserTypeEnum.AGENT_LEVEL_1.getCode(),
+        createCommissionRecord(order, agent.getId(), 1, // 一级代理
                 agent.getCommissionRate(), commissionAmount);
 
         log.info("一级代理{}自己消费，返现金额：{}", agent.getId(), commissionAmount);
@@ -148,12 +147,12 @@ public class CommissionServiceImpl implements ICommissionService {
         }
 
         // 创建一级代理返现记录
-        createCommissionRecord(order, level1Agent.getId(), UserTypeEnum.AGENT_LEVEL_1.getCode(),
+        createCommissionRecord(order, level1Agent.getId(), 1, // 一级代理
                 level1Agent.getCommissionRate(), level1Commission);
 
         // 创建二级代理返现记录
         if (level2Commission.compareTo(BigDecimal.ZERO) > 0) {
-            createCommissionRecord(order, level2Agent.getId(), UserTypeEnum.AGENT_LEVEL_2.getCode(),
+            createCommissionRecord(order, level2Agent.getId(), 2, // 二级代理
                     level2Agent.getCommissionRate(), level2Commission);
         }
 
@@ -206,11 +205,11 @@ public class CommissionServiceImpl implements ICommissionService {
             }
 
             // 创建返现记录
-            createCommissionRecord(order, level1Agent.getId(), UserTypeEnum.AGENT_LEVEL_1.getCode(),
+            createCommissionRecord(order, level1Agent.getId(), 1, // 一级代理
                     level1Agent.getCommissionRate(), level1Commission);
 
             if (level2Commission.compareTo(BigDecimal.ZERO) > 0) {
-                createCommissionRecord(order, inviter.getId(), UserTypeEnum.AGENT_LEVEL_2.getCode(),
+                createCommissionRecord(order, inviter.getId(), 2, // 二级代理
                         inviter.getCommissionRate(), level2Commission);
             }
 
@@ -225,7 +224,7 @@ public class CommissionServiceImpl implements ICommissionService {
             }
 
             BigDecimal commissionAmount = calculateCommissionAmount(order.getActualAmount(), inviter.getCommissionRate());
-            createCommissionRecord(order, inviter.getId(), UserTypeEnum.AGENT_LEVEL_1.getCode(),
+            createCommissionRecord(order, inviter.getId(), 1, // 一级代理
                     inviter.getCommissionRate(), commissionAmount);
 
             log.info("会员{}消费，一级代理{}返现：{}", member.getId(), inviter.getId(), commissionAmount);
@@ -257,7 +256,7 @@ public class CommissionServiceImpl implements ICommissionService {
      *
      * @param order           订单信息
      * @param agentId         代理用户ID
-     * @param agentLevel      代理级别（3-一级代理，4-二级代理）
+     * @param agentLevel      代理级别（1-一级代理，2-二级代理）
      * @param rate            返现比例
      * @param commissionAmount 返现金额
      */

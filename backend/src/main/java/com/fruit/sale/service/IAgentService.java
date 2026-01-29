@@ -1,5 +1,6 @@
 package com.fruit.sale.service;
 
+import com.fruit.sale.dto.AcceptAgentInvitationDTO;
 import com.fruit.sale.dto.AgentApplyDTO;
 import com.fruit.sale.dto.CommissionApplicationDTO;
 import com.fruit.sale.dto.InviteSubAgentDTO;
@@ -45,6 +46,11 @@ public interface IAgentService {
      * 一级代理邀请二级代理
      */
     void inviteSubAgent(Long inviterId, InviteSubAgentDTO dto);
+
+    /**
+     * 被邀请者接受代理邀请（通过分享链接）
+     */
+    void acceptAgentInvitation(Long inviteeId, AcceptAgentInvitationDTO dto);
 
     /**
      * 获取代理邀请申请列表（后台管理）

@@ -251,13 +251,19 @@ public class AdminServiceImpl implements IAdminService {
             UserInfo user = userInfoMapper.selectById(apply.getUserId());
             if (user != null) {
                 if (apply.getApplyLevel() == 2) {
-                    user.setUserType(3);  // 一级代理
+                    user.setAgentLevel(1);  // 一级代理（userType保持为2-星享会员）
                     user.setParentAgentId(null);
                 } else if (apply.getApplyLevel() == 3) {
-                    user.setUserType(4);  // 二级代理
+                    user.setAgentLevel(2);  // 二级代理（userType保持为2-星享会员）
                     user.setParentAgentId(apply.getRecommenderId());
                 }
                 user.setCommissionRate(apply.getCommissionRate());
+
+                // 生成邀请码（如果还没有）
+                if (user.getInviteCode() == null || user.getInviteCode().isEmpty()) {
+                    user.setInviteCode(generateInviteCode());
+                }
+
                 userInfoMapper.updateById(user);
             }
         }

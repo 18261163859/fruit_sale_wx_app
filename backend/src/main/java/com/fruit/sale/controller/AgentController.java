@@ -2,6 +2,7 @@ package com.fruit.sale.controller;
 
 import com.fruit.sale.common.PageResult;
 import com.fruit.sale.common.Result;
+import com.fruit.sale.dto.AcceptAgentInvitationDTO;
 import com.fruit.sale.dto.AgentApplyDTO;
 import com.fruit.sale.dto.CommissionApplicationDTO;
 import com.fruit.sale.dto.InviteSubAgentDTO;
@@ -108,6 +109,14 @@ public class AgentController {
         Long inviterId = (Long) request.getAttribute("userId");
         agentService.inviteSubAgent(inviterId, dto);
         return Result.success("邀请申请已提交，请等待审核");
+    }
+
+    @Operation(summary = "接受代理邀请", description = "被邀请者通过分享链接接受代理邀请，申请成为二级代理")
+    @PostMapping("/accept-invitation")
+    public Result<String> acceptAgentInvitation(HttpServletRequest request, @Valid @RequestBody AcceptAgentInvitationDTO dto) {
+        Long inviteeId = (Long) request.getAttribute("userId");
+        agentService.acceptAgentInvitation(inviteeId, dto);
+        return Result.success("申请已提交，请等待审核");
     }
 
     @Operation(summary = "获取我发起的邀请申请列表", description = "查看我发起的邀请二级代理申请记录")

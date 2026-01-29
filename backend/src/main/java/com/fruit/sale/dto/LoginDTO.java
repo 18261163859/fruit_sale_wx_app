@@ -30,9 +30,15 @@ public class LoginDTO {
     @Schema(description = "手机号code(用于解密获取真实手机号)")
     private String phoneCode;
 
-    @Schema(description = "邀请人ID")
+@Schema(description = "邀请人ID")
     private Long inviterId;
 
-    @Schema(description = "邀请码")
+    @Schema(description = "Invite code (for regular member binding)")
     private String inviteCode;
+
+    @Schema(description = "Agent invite code (for proxy invitation with commission rate)")
+    private String agentInviteCode;
+
+    @Schema(description = "Commission rate (for proxy invitation via share link)")
+    private java.math.BigDecimal commissionRate;
 }

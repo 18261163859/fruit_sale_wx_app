@@ -308,28 +308,40 @@
     </el-tabs>
 
     <!-- 拒绝邀请申请对话框 -->
-    <el-dialog v-model="inviteRejectVisible" title="拒绝邀请申请" width="500px">
-      <el-form :model="inviteRejectForm" label-width="80px">
-        <el-form-item label="拒绝理由">
-          <el-input v-model="inviteRejectForm.reason" type="textarea" :rows="4" placeholder="请输入拒绝理由" />
-        </el-form-item>
-      </el-form>
+<el-dialog v-model="inviteRejectVisible" title="Reject Agent Invitation" width="600px">
+      <div class="dialog-content">
+        <div class="dialog-padding">
+          <h3 class="dialog-header">Reject Secondary Agent Invitation</h3>
+        </div>
+        <el-divider class="dialog-divider"></el-divider>
+        <el-form :model="inviteRejectForm" label-width="100px">
+          <el-form-item label="拒绝理由">
+            <el-input v-model="inviteRejectForm.reason" type="textarea" :rows="5" placeholder="Please provide detailed rejection reason..." />
+          </el-form-item>
+        </el-form>
+      </div>
       <template #footer>
-        <el-button @click="inviteRejectVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmInviteReject">确定</el-button>
+        <el-button @click="inviteRejectVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="confirmInviteReject">Confirm</el-button>
       </template>
     </el-dialog>
 
     <!-- 拒绝返现申请对话框 -->
-    <el-dialog v-model="commissionRejectVisible" title="拒绝返现申请" width="500px">
-      <el-form :model="commissionRejectForm" label-width="80px">
-        <el-form-item label="拒绝理由">
-          <el-input v-model="commissionRejectForm.reason" type="textarea" :rows="4" placeholder="请输入拒绝理由" />
-        </el-form-item>
-      </el-form>
+<el-dialog v-model="commissionRejectVisible" title="Reject Commission Application" width="600px">
+      <div class="dialog-content">
+        <div class="dialog-padding">
+          <h3 class="dialog-header">Reject Commission Application</h3>
+        </div>
+        <el-divider class="dialog-divider"></el-divider>
+        <el-form :model="commissionRejectForm" label-width="100px">
+          <el-form-item label="拒绝理由">
+            <el-input v-model="commissionRejectForm.reason" type="textarea" :rows="5" placeholder="Please provide detailed rejection reason..." />
+          </el-form-item>
+        </el-form>
+      </div>
       <template #footer>
-        <el-button @click="commissionRejectVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmCommissionReject">确定</el-button>
+        <el-button @click="commissionRejectVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="confirmCommissionReject">Confirm</el-button>
       </template>
     </el-dialog>
   </div>
@@ -473,11 +485,17 @@ const resetInviteSearch = () => {
 const handleInviteApprove = async (row: any, status: number) => {
   if (status === 1) {
     try {
-      await ElMessageBox.confirm('确定要通过该邀请申请吗？通过后被邀请人将成为二级代理。', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
+      await ElMessageBox.confirm(
+        `确定要通过该邀请申请吗？\n\n邀请人：${row.inviterNickname}\n被邀请人：${row.inviteeNickname || '未知'}\n返现比例：${row.commissionRate}%\n\n通过后被邀请人将成为二级代理。`,
+        '二级代理邀请确认',
+        {
+          confirmButtonText: '确认',
+          cancelButtonText: '取消',
+          type: 'warning',
+          distinguish: true,
+          dangerouslyUseHTMLString: false
+        }
+      )
 
       await reviewInviteApplication({
         applicationId: row.id,
@@ -646,5 +664,30 @@ onMounted(() => {
   width: 60px;
   height: 40px;
   cursor: pointer;
+}
+
+.dialog-content {
+  padding: 32px;
+  background: linear-gradient(135deg, #e3e7ea 0%, #d6dbe0 100%);
+}
+
+.dialog-padding {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.dialog-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  text-align: center;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+}
+
+.dialog-divider {
+  margin-top: 0;
+  margin-bottom: 24px;
+  border-style: solid;
 }
 </style>

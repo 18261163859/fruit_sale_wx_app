@@ -72,7 +72,7 @@ public class AuthInterceptor implements HandlerInterceptor {
      * 写入错误响应
      */
     private void writeErrorResponse(HttpServletResponse response, ResultCode resultCode) throws IOException {
-        response.setStatus(HttpServletResponse.SC_OK);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
         Result<Void> result = Result.error(resultCode);
         response.getWriter().write(objectMapper.writeValueAsString(result));

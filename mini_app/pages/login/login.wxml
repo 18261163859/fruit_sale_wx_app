@@ -6,6 +6,30 @@
     <text class="slogan">品质生活，从这里开始</text>
   </view>
 
+  <!-- Agent invitation confirmation modal -->
+  <view class="agent-confirm-modal" wx:if="{{showAgentConfirmModal}}">
+    <view class="modal-mask" bindtap="declineAgentInvitation"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">申请成为二级代理</text>
+        <text class="modal-close" bindtap="declineAgentInvitation">✕</text>
+      </view>
+      <view class="modal-body">
+        <view class="form-item">
+          <text class="form-label">返现比例</text>
+          <text class="form-value">{{commissionRate}}%</text>
+        </view>
+        <view class="form-tips">
+          <text>申请成为这个用户的二级代理</text>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="cancel-btn" bindtap="declineAgentInvitation">取消</button>
+        <button class="confirm-btn" bindtap="confirmAgentInvitation">继续</button>
+      </view>
+    </view>
+  </view>
+
   <view class="login-content">
     <button class="login-btn" open-type="getPhoneNumber" bindgetphonenumber="onWxLoginWithPhone">
       微信授权登录

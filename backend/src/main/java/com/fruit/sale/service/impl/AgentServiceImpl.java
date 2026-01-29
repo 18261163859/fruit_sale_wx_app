@@ -3,6 +3,7 @@ package com.fruit.sale.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fruit.sale.dto.AcceptAgentInvitationDTO;
 import com.fruit.sale.dto.AgentApplyDTO;
 import com.fruit.sale.dto.CommissionApplicationDTO;
 import com.fruit.sale.dto.InviteSubAgentDTO;
@@ -355,8 +356,8 @@ public class AgentServiceImpl implements IAgentService {
                 throw new BusinessException("返现比例必须在0-100之间");
             }
         } else {
-            // 默认返现比例
-            commissionRate = new BigDecimal("5.00");
+            // Default返现比例
+            commissionRate = new BigDecimal("80.00");
         }
 
         // 7. 创建邀请申请记录（待审核）
@@ -369,6 +370,72 @@ public class AgentServiceImpl implements IAgentService {
         agentApplicationMapper.insert(application);
 
         log.info("一级代理 {} 提交了邀请用户 {} 成为二级代理的申请，等待审核", inviterId, invitee.getId());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void acceptAgentInvitation(Long inviteeId, AcceptAgentInvitationDTO dto) {
+        // 1. 验证被邀请人（当前用户）
+        UserInfo invitee = userInfoMapper.selectById(inviteeId);
+        if (invitee == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        // 2. 验证被邀请人是否已是代理
+        if (invitee.getAgentLevel() != null && invitee.getAgentLevel() > 0) {
+            throw new BusinessException("您已经是代理，无法再接受邀请");
+        }
+
+        // 3. 验证被邀请人是否已有上级代理
+        if (invitee.getParentAgentId() != null) {
+            throw new BusinessException("您已有上级代理，无法再接受新的邀请");
+        }
+
+        // 4. 根据邀请码查找邀请人（一级代理）
+        LambdaQueryWrapper<UserInfo> inviterWrapper = new LambdaQueryWrapper<>();
+        inviterWrapper.eq(UserInfo::getInviteCode, dto.getAgentInviteCode());
+        UserInfo inviter = userInfoMapper.selectOne(inviterWrapper);
+
+        if (inviter == null) {
+            throw new BusinessException("邀请码无效，请确认邀请码是否正确");
+        }
+
+        // 5. 验证邀请人是否为一级代理
+        if (inviter.getAgentLevel() == null || inviter.getAgentLevel() != 1) {
+            throw new BusinessException("邀请人不是一级代理，无法接受邀请");
+        }
+
+        // 6. 检查是否已有待审核的申请
+        LambdaQueryWrapper<AgentApplication> appWrapper = new LambdaQueryWrapper<>();
+        appWrapper.eq(AgentApplication::getInviteeId, inviteeId)
+                .eq(AgentApplication::getStatus, 0); // 待审核
+        AgentApplication existingApp = agentApplicationMapper.selectOne(appWrapper);
+        if (existingApp != null) {
+            throw new BusinessException("您已有待审核的代理申请，请等待审核结果");
+        }
+
+        // 7. 验证返现比例
+        BigDecimal commissionRate = dto.getCommissionRate();
+        if (commissionRate != null) {
+            if (commissionRate.compareTo(BigDecimal.ZERO) <= 0
+                || commissionRate.compareTo(new BigDecimal("100")) > 0) {
+                throw new BusinessException("返现比例必须在0-100之间");
+            }
+        } else {
+            // 默认返现比例
+            commissionRate = new BigDecimal("80.00");
+        }
+
+        // 8. 创建邀请申请记录（待审核）
+        AgentApplication application = new AgentApplication();
+        application.setInviterId(inviter.getId());
+        application.setInviteeId(inviteeId);
+        application.setInviteePhone(invitee.getPhone());
+        application.setCommissionRate(commissionRate);
+        application.setStatus(0); // 待审核
+        agentApplicationMapper.insert(application);
+
+        log.info("用户 {} 接受了一级代理 {} 的邀请，申请成为二级代理，等待审核", inviteeId, inviter.getId());
     }
 
     /**
@@ -493,7 +560,7 @@ public class AgentServiceImpl implements IAgentService {
             }
 
             // 升级为二级代理
-            invitee.setAgentLevel(2);  // 代理层级为2
+            invitee.setAgentLevel(2);  // 代理层级为2（userType保持不变，应为2-星享会员）
             invitee.setParentAgentId(application.getInviterId());  // 设置上级代理
             invitee.setCommissionRate(application.getCommissionRate());
 
